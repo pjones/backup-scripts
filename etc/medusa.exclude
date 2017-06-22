@@ -1,2 +1,10 @@
-backup
-documents/disk-images
+/home/libvirt
+/home/pjones/.cache
+/home/pjones/bin
+/home/pjones/download
+/home/pjones/lib
+/home/pjones/mnt
+/home/pjones/sync
+/home/pjones/documents/disk-images/iso
+/home/pjones/documents/music
+/home/pjones/documents/ripping
