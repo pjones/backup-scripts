@@ -15,5 +15,5 @@ backup_via_rdiff() {
   rdiff-backup \
     --exclude-filelist "${BACKUP_EXCLUDE_FILE:-/dev/null}" \
     --exclude-other-filesystems --exclude-sockets --print-statistics \
-    "$force_flag" "$(pwd)" "$BACKUP_RDIFF_DIR"
+    $force_flag "$(pwd)" "$BACKUP_RDIFF_DIR"
 }
