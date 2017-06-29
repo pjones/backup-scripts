@@ -4,13 +4,17 @@
 export BACKUP_RDIFF_DIR=/mnt/backup/home
 export BACKUP_LOG_DIR=/var/lib/backup/log
 export BACKUP_EXCLUDE_DIR=/var/lib/backup/exclude
+export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
 
 ################################################################################
-export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
+# shellcheck source=lib/backup.sh
 . "$BACKUP_LIB_DIR/backup.sh"
 
 ################################################################################
 cd /home || exit 1
+
+################################################################################
+# FIXME: Automatically abort if BACKUP_RDIFF_DIR isn't mounted
 
 ################################################################################
 exclude_start
