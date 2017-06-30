@@ -2,8 +2,6 @@
 
 ################################################################################
 export BACKUP_RDIFF_DIR=/mnt/backup/home
-export BACKUP_LOG_DIR=/var/lib/backup/log
-export BACKUP_EXCLUDE_DIR=/var/lib/backup/exclude
 export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
 
 ################################################################################

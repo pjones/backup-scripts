@@ -1,6 +1,6 @@
 ################################################################################
 # Functions to help build exclude files.
-export BACKUP_EXCLUDE_DIR=${BACKUP_EXCLUDE_DIR:-$HOME/backup/exclude}
+export BACKUP_EXCLUDE_DIR=${BACKUP_EXCLUDE_DIR:-/var/lib/backup/exclude}
 export BACKUP_EXCLUDE_FILE=${BACKUP_EXCLUDE_FILE:-$BACKUP_EXCLUDE_DIR/$BACKUP_NAME.exclude}
 
 ################################################################################

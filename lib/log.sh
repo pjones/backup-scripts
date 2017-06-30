@@ -1,5 +1,5 @@
 ################################################################################
-export BACKUP_LOG_DIR=${BACKUP_LOG_DIR:-$HOME/backup/log}
+export BACKUP_LOG_DIR=${BACKUP_LOG_DIR:-/var/lib/backup/log}
 
 ################################################################################
 # Where we're going to keep logs and signature files.
