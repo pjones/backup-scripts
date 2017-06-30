@@ -45,3 +45,10 @@ while getopts "hfv" o; do
 done
 
 shift $((OPTIND-1))
+
+################################################################################
+# Safer version of `cd'.
+change_directory() {
+  directory=${1:-$HOME}
+  cd "$directory" || die "$directory doesn't exist!"
+}

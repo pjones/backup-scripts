@@ -27,6 +27,14 @@ exclude_start () {
 }
 
 ################################################################################
+# An alternative to `exclude_start', creates a dummy exclude file that
+# doesn't exclude anything.
+exclude_nothing() {
+  log "creating dummy exclude file (exclude_nothing)"
+  cat /dev/null > "$BACKUP_EXCLUDE_FILE"
+}
+
+################################################################################
 exclude_dir () {
   for d in "$@"; do
     realpath "$d" >> "$BACKUP_EXCLUDE_FILE"
