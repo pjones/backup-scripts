@@ -6,6 +6,7 @@ set -u
 export PATH=@pathextras@:$PATH
 
 ################################################################################
+HOME=${HOME:-/tmp} # Just in case.
 BACKUP_NAME=$(basename "$0" .sh|sed 's/^backup-//')
 BACKUP_ETC_DIR=${BACKUP_ETC_DIR:-@etcdir@}
 export BACKUP_NAME BACKUP_ETC_DIR
