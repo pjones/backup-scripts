@@ -1,5 +1,7 @@
 /home/libvirt
 /home/pjones/.cache
+/home/pjones/.nix-defexpr
+/home/pjones/.nix-profile
 /home/pjones/bin
 /home/pjones/download
 /home/pjones/lib
