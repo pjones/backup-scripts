@@ -7,7 +7,7 @@ export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
 ################################################################################
 # Back up all home directories:
 change_directory /home
-backup_to_directory /mnt/backup/home
+backup_to_mount_point /mnt/backup/home
 exclude_start
 exclude_sccs
 exclude_log_directories
