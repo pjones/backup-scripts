@@ -1,4 +1,4 @@
-#! @bash@/bin/bash
+#!/bin/bash
 
 ################################################################################
 export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
