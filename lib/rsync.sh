@@ -10,6 +10,9 @@ BACKUP_SSH_PORT=${BACKUP_SSH_PORT:-22}
 BACKUP_RSYNC_KEEP_COUNT=${BACKUP_RSYNC_KEEP_COUNT:-14}
 
 ################################################################################
+TOP=$(dirname "$0")/..
+
+################################################################################
 # Sync a directory using rsync.
 #
 #   $1: Origin directory (include trailing slash).
@@ -65,22 +68,5 @@ backup_via_rsync() {
 # Remove old backups.
 prune_rsync_backup_directory() {
   local destination=$1
-  local count
-  local num_to_remove
-  local to_remove
-
-  count=$(_rsync_find_subdirs "$destination" | wc -l)
-
-  if [ "$count" -gt "$BACKUP_RSYNC_KEEP_COUNT" ]; then
-    num_to_remove=$((count - BACKUP_RSYNC_KEEP_COUNT))
-    mapfile -t to_remove < <(_rsync_find_subdirs "$destination" | head --lines="$num_to_remove")
-    rm -r "${to_remove[@]}"
-  fi
-}
-
-################################################################################
-# Returns all subdirectories of the given directory.
-_rsync_find_subdirs() {
-  local dir=$1; shift
-  find "$dir" -mindepth 1 -maxdepth 1 -type d "$@" | sort
+  "$TOP"/scripts/purge-old-files.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
 }
