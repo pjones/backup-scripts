@@ -36,7 +36,7 @@ trap cleanup EXIT
 ################################################################################
 touch "${BACKUP_POSTGRESQL_DIR:?}/$BACKUP_POSTGRESQL_IN_PROGRESS"
 su postgres -c "mkdir -p ${BACKUP_POSTGRESQL_DIR:?}/$BACKUP_POSTGRESQL_WAL_DIR"
-su postgres -c "psql -c \"select pg_start_backup('$BACKUP_DATE');\""
+su postgres -c "psql -c \"select pg_start_backup('$BACKUP_DATE', false, false);\""
 
 # Don't allow anything to fail until telling postgres the backup is done.
 (
