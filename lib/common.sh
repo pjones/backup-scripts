@@ -3,7 +3,7 @@ set -e
 set -u
 
 ################################################################################
-export PATH=@pathextras@:$PATH
+export PATH=@pathextras@:/run/wrappers/bin:$PATH
 
 ################################################################################
 HOME=${HOME:-/tmp} # Just in case.
