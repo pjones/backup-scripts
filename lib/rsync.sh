@@ -68,5 +68,5 @@ backup_via_rsync() {
 # Remove old backups.
 prune_rsync_backup_directory() {
   local destination=$1
-  "$TOP"/scripts/purge-old-files.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
+  "$TOP"/bin/backup-purge.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
 }
