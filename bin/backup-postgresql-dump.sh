@@ -2,8 +2,8 @@
 
 ################################################################################
 # Backup PostgreSQL via pg_dumpall.
-set -e
-set -u
+export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
+. "$BACKUP_LIB_DIR/backup.sh"
 
 ################################################################################
 BACKUP_DIRECTORY=${BACKUP_DIRECTORY:-/var/lib/backup/postgres}
