@@ -32,11 +32,12 @@ in pkgs.stdenvNoCC.mkDerivation rec {
     export etcdir=$out/etc
     export libdir=$out/lib
 
-    for f in $(find bin etc lib scripts -type f); do
+    for f in $(find bin etc lib examples scripts -type f); do
       mkdir -p $out/$(dirname $f)
       substituteAll $f $out/$f
     done
 
-    find $out/bin $out/scripts -type f -exec chmod 0555 '{}' ';'
+    find $out/bin $out/scripts $out/examples \
+      -type f -exec chmod 0555 '{}' ';'
   '';
 }
