@@ -15,7 +15,7 @@ backup_via_rdiff
 
 ################################################################################
 # Back up music and other media files:
-change_directory /var/media/content/music
+change_directory /var/lib/media/content/music
 backup_to_directory /mnt/backup/misc/music
 exclude_nothing
 backup_via_rdiff

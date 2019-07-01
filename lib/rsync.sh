@@ -10,7 +10,7 @@ BACKUP_SSH_PORT=${BACKUP_SSH_PORT:-22}
 BACKUP_RSYNC_KEEP_COUNT=${BACKUP_RSYNC_KEEP_COUNT:-14}
 
 ################################################################################
-TOP=$(dirname "$0")/..
+TOP=$(realpath "$(dirname "$0")/..")
 
 ################################################################################
 # Sync a directory using rsync.
@@ -68,5 +68,5 @@ backup_via_rsync() {
 # Remove old backups.
 prune_rsync_backup_directory() {
   local destination=$1
-  "$TOP"/bin/backup-purge.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
+  "$SHELL" "$TOP"/bin/backup-purge.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
 }

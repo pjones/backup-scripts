@@ -5,10 +5,13 @@ export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-@libdir@}
 . "$BACKUP_LIB_DIR/backup.sh"
 
 ################################################################################
+export BACKUP_DEST_DIR=${BACKUP_DEST_DIR:-/mnt/backup/misc/remotes}
+
+################################################################################
 # Backup remote machines:
-for machine in kilgrave ursula moriarty; do
-  mkdir -p /home/backup/"$machine"
-  change_directory /home/backup/"$machine"
+for machine in "$@"; do
+  mkdir -p "$BACKUP_DEST_DIR/$machine"
+  change_directory "$BACKUP_DEST_DIR/$machine"
   backup_via_rsync root@"$machine".pmade.com:/var/lib/backup .
   prune_rsync_backup_directory .
 done
