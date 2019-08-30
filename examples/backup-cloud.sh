@@ -13,5 +13,5 @@ for machine in "$@"; do
   mkdir -p "$BACKUP_DEST_DIR/$machine"
   change_directory "$BACKUP_DEST_DIR/$machine"
   backup_via_rsync root@"$machine".pmade.com:/var/lib/backup .
-  prune_rsync_backup_directory .
+  backup-purge.sh -k 14 -d .
 done

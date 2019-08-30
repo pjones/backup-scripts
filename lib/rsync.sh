@@ -6,11 +6,8 @@ BACKUP_SSH_KEY=${BACKUP_SSH_KEY:-/run/keys/backup-ssh-key}
 BACKUP_SSH_PORT=${BACKUP_SSH_PORT:-22}
 
 ################################################################################
-# Number of old backups to keep.
-BACKUP_RSYNC_KEEP_COUNT=${BACKUP_RSYNC_KEEP_COUNT:-14}
-
-################################################################################
-TOP=$(realpath "$(dirname "$0")/..")
+# Control whether we ignore "file vanished" errors.
+BACKUP_RSYNC_IGNORE_VANISHED=${BACKUP_RSYNC_IGNORE_VANISHED:-1}
 
 ################################################################################
 # Sync a directory using rsync.
@@ -61,12 +58,16 @@ backup_via_rsync() {
   fi
 
   log "backing up $origin to $next"
-  rsync -aLkv -e "ssh ${ssh_options[*]}" "$origin" "$next"/
-}
 
-################################################################################
-# Remove old backups.
-prune_rsync_backup_directory() {
-  local destination=$1
-  "$SHELL" "$TOP"/bin/backup-purge.sh -k "$BACKUP_RSYNC_KEEP_COUNT" -d "$destination"
+  if ! rsync -aLkv -e "ssh ${ssh_options[*]}" "$origin" "$next"/; then
+    status=$?
+
+    if [ "$BACKUP_RSYNC_IGNORE_VANISHED" -eq 1 ] && [ "$status" -eq 24 ]; then
+      status=0;
+    fi
+
+    if [ "$status" -ne 0 ]; then
+      exit "$status"
+    fi
+  fi
 }
