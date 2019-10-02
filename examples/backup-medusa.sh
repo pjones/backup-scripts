@@ -14,12 +14,12 @@ change_directory "$HOME"
 rsync \
   -avu \
   --delete \
-  --exclude=.cache \
-  --exclude=archive \
-  --exclude=download \
-  --exclude=git \
-  --exclude=sync \
-  ./ "$destination":/home/pjones/
+  --exclude=/.cache/ \
+  --exclude=/download/ \
+  --exclude=/src/ \
+  --exclude=/documents/ripping/ \
+  --exclude=/documents/disk-images/ \
+  ./ "$destination":/home/pjones/backup/
 
 ################################################################################
 # Sync over my archive drive:
