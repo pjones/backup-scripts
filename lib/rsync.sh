@@ -38,7 +38,7 @@ backup_via_rsync() {
 
   local origin=$1
   local destination=$2
-  local last=$(find "$destination" -mindepth 1 -maxdepth 1 -type d | tail -1)
+  local last=$(find "$destination" -mindepth 1 -maxdepth 1 -type d | sort | tail -1)
   local next="$destination/$(date +%Y-%m-%d_%H:%M:%S)"
   local ssh_options=("-p" "$BACKUP_SSH_PORT" "-i" "$BACKUP_SSH_KEY" "-oStrictHostKeyChecking=no")
 
