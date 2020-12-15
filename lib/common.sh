@@ -1,15 +1,15 @@
-################################################################################
-set -e
-set -u
+#!/usr/bin/env bash
+
+set -eu
+set -o pipefail
 
 ################################################################################
 export PATH=@pathextras@:/run/wrappers/bin:$PATH
 
 ################################################################################
 HOME=${HOME:-/tmp} # Just in case.
-BACKUP_NAME=$(basename "$0" .sh|sed 's/^backup-//')
-BACKUP_ETC_DIR=${BACKUP_ETC_DIR:-@etcdir@}
-export BACKUP_NAME BACKUP_ETC_DIR
+BACKUP_NAME=$(basename "$0" .sh | sed 's/^backup-//')
+export BACKUP_NAME
 
 ################################################################################
 export option_verbose=0
@@ -17,8 +17,8 @@ export option_force=0
 
 ################################################################################
 usage() {
-name=$(basename "$0")
-cat <<EOF
+  name=$(basename "$0")
+  cat <<EOF
 Usage: $name [options]
 
   -h      This message
@@ -30,22 +30,26 @@ EOF
 ################################################################################
 while getopts "hfv" o; do
   case "${o}" in
-    h) usage
-       exit
-       ;;
+  h)
+    usage
+    exit
+    ;;
 
-    f) option_force=1
-       ;;
+  f)
+    option_force=1
+    ;;
 
-    v) option_verbose=1
-       ;;
+  v)
+    option_verbose=1
+    ;;
 
-    *) exit 1
-       ;;
+  *)
+    exit 1
+    ;;
   esac
 done
 
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 ################################################################################
 # Safer version of `cd'.

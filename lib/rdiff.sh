@@ -1,3 +1,9 @@
+#!/usr/bin/env bash
+
+################################################################################
+set -eu
+set -o pipefail
+
 ################################################################################
 BACKUP_RDIFF_DEFAULT_DIR=$HOME/backup/${BACKUP_NAME:-$(hostname)}
 export BACKUP_RDIFF_DIR=${BACKUP_RDIFF_DIR:-$BACKUP_RDIFF_DEFAULT_DIR}

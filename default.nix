@@ -2,12 +2,12 @@
 }:
 
 with pkgs.lib;
-
 let
   # Build a PATH list for each dependency:
   mkPkgPath = concatMapStringsSep ":" (pkg: "${pkg}/bin");
 
-in pkgs.stdenvNoCC.mkDerivation rec {
+in
+pkgs.stdenvNoCC.mkDerivation rec {
   name = "backup-scripts";
   meta.description = "Peter's backup scripts";
   phases = [ "unpackPhase" "installPhase" "fixupPhase" ];
@@ -29,10 +29,9 @@ in pkgs.stdenvNoCC.mkDerivation rec {
   installPhase = ''
     # Variables to substitute into the scripts:
     export pathextras=${mkPkgPath buildInputs}
-    export etcdir=$out/etc
     export libdir=$out/lib
 
-    for f in $(find bin etc lib examples scripts -type f); do
+    for f in $(find bin lib examples scripts -type f); do
       mkdir -p $out/$(dirname $f)
       substituteAll $f $out/$f
     done

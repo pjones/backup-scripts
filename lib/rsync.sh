@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+################################################################################
+set -eu
+set -o pipefail
 
 ################################################################################
 # What ssh key to use for doing remote backups.
@@ -19,8 +23,10 @@ sync_via_rsync() {
     die "Usage: sync_via_rsync origin destination"
   fi
 
-  local origin="$1";      shift
-  local destination="$1"; shift
+  local origin="$1"
+  shift
+  local destination="$1"
+  shift
 
   log "syncing $origin -> $destination"
   rsync -au "$origin" "$destination"
@@ -38,9 +44,27 @@ backup_via_rsync() {
 
   local origin=$1
   local destination=$2
-  local last=$(find "$destination" -mindepth 1 -maxdepth 1 -type d | sort | tail -1)
-  local next="$destination/$(date +%Y-%m-%d_%H:%M:%S)"
-  local ssh_options=("-p" "$BACKUP_SSH_PORT" "-i" "$BACKUP_SSH_KEY" "-oStrictHostKeyChecking=no")
+  shift 2
+
+  local last
+  local next
+
+  local ssh_options=(
+    "-p" "$BACKUP_SSH_PORT"
+    "-i" "$BACKUP_SSH_KEY"
+    "-oStrictHostKeyChecking=no"
+  )
+
+  # The last backup that was taken.  Used for hard linking files that
+  # haven't changed:
+  last=$(
+    find "$destination" -mindepth 1 -maxdepth 1 -type d |
+      sort |
+      tail -1
+  )
+
+  # The name of the backup directory to create:
+  next="$destination/$(date +%Y-%m-%d_%H:%M:%S)"
 
   # Ensure origin ends with a slash:
   if ! echo "$origin" | grep -E '/$'; then
@@ -59,11 +83,11 @@ backup_via_rsync() {
 
   log "backing up $origin to $next"
 
-  if ! rsync -aLkv -e "ssh ${ssh_options[*]}" "$origin" "$next"/; then
+  if ! rsync -aLkv -e "ssh ${ssh_options[*]}" "$@" "$origin" "$next"/; then
     status=$?
 
     if [ "$BACKUP_RSYNC_IGNORE_VANISHED" -eq 1 ] && [ "$status" -eq 24 ]; then
-      status=0;
+      status=0
     fi
 
     if [ "$status" -ne 0 ]; then

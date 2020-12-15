@@ -1,13 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # Backup a PostgreSQL database using "Standalone Hot Backups".
-set -e
-set -u
+set -eu
+set -o pipefail
 
 ################################################################################
 if [ $# -ne 1 ]; then
-  >&2 echo "Usage: $0 postgresql-directory"
+  echo >&2 "Usage: $0 postgresql-directory"
   exit 1
 fi
 
@@ -27,7 +27,7 @@ BACKUP_POSTGRESQL_IN_PROGRESS=${BACKUP_POSTGRESQL_IN_PROGRESS:-backup-in-progres
 
 ################################################################################
 cleanup() {
-  rm     "${BACKUP_POSTGRESQL_DIR:?}/$BACKUP_POSTGRESQL_IN_PROGRESS"
+  rm "${BACKUP_POSTGRESQL_DIR:?}/$BACKUP_POSTGRESQL_IN_PROGRESS"
   rm -rf "${BACKUP_POSTGRESQL_DIR:?}/$BACKUP_POSTGRESQL_WAL_DIR"
 }
 
@@ -49,7 +49,7 @@ su postgres -c "psql -c \"select pg_start_backup('$BACKUP_DATE', false, false);\
 su postgres -c "psql -c 'select pg_stop_backup();'"
 
 if [ ! -e "$BACKUP_INITIAL_NAME" ]; then
-  >&2 echo "ERROR: tar did not create a backup!"
+  echo >&2 "ERROR: tar did not create a backup!"
   exit 1
 fi
 

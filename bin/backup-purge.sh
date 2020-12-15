@@ -1,17 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ################################################################################
 # Remove old backup files from a directory.
-set -e
-set -u
+set -eu
+set -o pipefail
 
 ################################################################################
 option_type="f"
 option_keep=14
 
 ################################################################################
-usage () {
-cat <<EOF
+usage() {
+  cat <<EOF
 Usage: purge-old-files.sh [options] directory
 
   -d      Purge directories instead of files
@@ -23,32 +23,37 @@ EOF
 ################################################################################
 while getopts "hdk:" o; do
   case "${o}" in
-    h) usage
-       exit
-       ;;
+  h)
+    usage
+    exit
+    ;;
 
-    d) option_type="d"
-       ;;
+  d)
+    option_type="d"
+    ;;
 
-    k) option_keep=$OPTARG
-       ;;
+  k)
+    option_keep=$OPTARG
+    ;;
 
-    *) exit 1
-       ;;
+  *)
+    exit 1
+    ;;
   esac
 done
 
-shift $((OPTIND-1))
+shift $((OPTIND - 1))
 
 ################################################################################
 if [ $# -ne 1 ] || [ ! -d "$1" ]; then
-  >&2 echo "ERROR: provide exactly one directory name"
+  echo >&2 "ERROR: provide exactly one directory name"
   exit 1
 fi
 
 ################################################################################
 _dir_entries() {
-  local dir=$1; shift
+  local dir=$1
+  shift
   find "$dir" -mindepth 1 -maxdepth 1 -type "$option_type" "$@" | sort
 }
 
