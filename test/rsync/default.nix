@@ -31,11 +31,11 @@ pkgs.nixosTest {
         enable = true;
         schedules = [
           {
-            host = "localhost";
-            directory = "/tmp/backup";
-            user = "root";
-            key = "/tmp/key";
-            services = [ "sshd.service" ];
+            remote.host = "localhost";
+            remote.directory = "/tmp/backup";
+            remote.user = "root";
+            remote.key = "/tmp/key";
+            local.services = [ "sshd.service" ];
           }
         ];
       };
