@@ -82,8 +82,10 @@ backup_via_rsync() {
   fi
 
   if [ -e "$last" ]; then
+    log "hard linking to previous backup: $last -> $next"
     cp --recursive --link "$last" "$next"
   else
+    log "no previous backup found, starting from scratch"
     mkdir -p "$next"
   fi
 

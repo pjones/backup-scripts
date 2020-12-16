@@ -6,6 +6,7 @@ set -o pipefail
 
 ################################################################################
 export BACKUP_LOG_DIR=${BACKUP_LOG_DIR:-/var/lib/backup/log}
+export BACKUP_LOG_ADD_DATE=${BACKUP_LOG_ADD_DATE:-yes}
 
 ################################################################################
 # Where we're going to keep logs and signature files.
@@ -29,8 +30,12 @@ die() {
 
 ################################################################################
 log() {
-  now=$(date +'%Y-%m-%d %H:%M:%S')
-  echo "[$now]:" "$@"
+  if [ "$BACKUP_LOG_ADD_DATE" = yes ]; then
+    now=$(date +'%Y-%m-%d %H:%M:%S')
+    echo "[$now]:" "$@"
+  else
+    echo "$@"
+  fi
 }
 
 ################################################################################

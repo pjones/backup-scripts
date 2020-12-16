@@ -109,6 +109,14 @@ let
           consider changing the number of backups that you keep.
         '';
       };
+
+      preScript = lib.mkOption {
+        type = lib.types.lines;
+        default = "";
+        description = ''
+          Shell script fragment to run before rsync.
+        '';
+      };
     };
 
     config = {
@@ -143,14 +151,21 @@ let
       script = ''
         export BACKUP_LIB_DIR=${cfg.package}/lib
         export BACKUP_LOG_DIR=stdout
+        export BACKUP_LOG_ADD_DATE=no
         export BACKUP_SSH_KEY=${toString opts.local.key}
         export BACKUP_SSH_PORT=${toString opts.remote.port}
         . "${cfg.package}/lib/backup.sh"
 
+      ''
+      + opts.preScript
+      + ''
+
+        log "starting backup_via_rsync"
         backup_via_rsync \
           "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}" \
           "${opts.local.directory}"
 
+        log "checking for older backups that need to be purged..."
         backup-purge.sh \
           -k "${toString opts.local.keep}" \
           -d "${opts.local.directory}"

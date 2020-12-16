@@ -64,6 +64,14 @@ to_remove=()
 
 if [ "$count" -gt "$option_keep" ]; then
   num_to_remove=$((count - option_keep))
+  echo "number of old backups to purge: $num_to_remove"
+
   mapfile -t to_remove < <(_dir_entries "$1" | head --lines="$num_to_remove")
-  rm -r "${to_remove[@]}"
+
+  for entry in "${to_remove[@]}"; do
+    echo "purging old backup: $entry"
+    rm -r "$entry"
+  done
+else
+  echo "no backups need to be purged yet"
 fi
