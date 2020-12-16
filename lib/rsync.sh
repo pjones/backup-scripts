@@ -83,7 +83,7 @@ backup_via_rsync() {
 
   log "backing up $origin to $next"
 
-  if ! rsync -aLkv -e "ssh ${ssh_options[*]}" "$@" "$origin" "$next"/; then
+  if ! rsync -aFkLv -e "ssh ${ssh_options[*]}" "$@" "$origin" "$next"/; then
     status=$?
 
     if [ "$BACKUP_RSYNC_IGNORE_VANISHED" -eq 1 ] && [ "$status" -eq 24 ]; then
