@@ -34,7 +34,7 @@ pkgs.nixosTest {
             remote.host = "localhost";
             remote.directory = "/tmp/backup";
             remote.user = "root";
-            remote.key = "/tmp/key";
+            local.key = "/tmp/key";
             local.services = [ "sshd.service" ];
           }
         ];

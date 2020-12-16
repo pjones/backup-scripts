@@ -54,6 +54,7 @@ if [ "$(cat "$first_backup/file")" != OKAY ]; then
 fi
 
 # Run another backup and verify the file was hard linked:
+sleep 1 # Ensure we wait long enough to get a new file name
 run_backup_service
 
 last_backup=$(most_recent_backup)

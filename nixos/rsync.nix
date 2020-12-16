@@ -43,7 +43,24 @@ let
           example = "/var/backup";
           description = "Remote directory to sync to the local machine.";
         };
+      };
 
+      local = {
+        user = lib.mkOption {
+          type = lib.types.str;
+          default = cfg.rsync.user;
+          example = "root";
+          description = "The local user running rsync.";
+        };
+
+        groups = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          description = ''
+            List of supplemental groups to add to the systemd service.
+            Useful for allowing access to the SSH key.
+          '';
+        };
 
         key = lib.mkOption {
           type = lib.types.nullOr lib.types.path;
@@ -53,15 +70,6 @@ let
             Optional SSH key to use when connecting to the remote
             machine.
           '';
-        };
-      };
-
-      local = {
-        user = lib.mkOption {
-          type = lib.types.str;
-          default = cfg.rsync.user;
-          example = "root";
-          description = "The local user running rsync.";
         };
 
         directory = lib.mkOption {
@@ -129,12 +137,13 @@ let
       serviceConfig = {
         Type = "simple";
         User = opts.local.user;
+        SupplementaryGroups = opts.local.groups;
       };
 
       script = ''
         export BACKUP_LIB_DIR=${cfg.package}/lib
         export BACKUP_LOG_DIR=stdout
-        export BACKUP_SSH_KEY=${toString opts.remote.key}
+        export BACKUP_SSH_KEY=${toString opts.local.key}
         export BACKUP_SSH_PORT=${toString opts.remote.port}
         . "${cfg.package}/lib/backup.sh"
 
