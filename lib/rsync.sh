@@ -55,6 +55,12 @@ backup_via_rsync() {
     "-oStrictHostKeyChecking=no"
   )
 
+  local delete_options=(
+    "--delete"
+    "--delete-after"
+    "--delete-excluded"
+  )
+
   # The last backup that was taken.  Used for hard linking files that
   # haven't changed:
   last=$(
@@ -83,7 +89,11 @@ backup_via_rsync() {
 
   log "backing up $origin to $next"
 
-  if ! rsync -aFkLv -e "ssh ${ssh_options[*]}" "$@" "$origin" "$next"/; then
+  if ! rsync \
+    -aFkLv "${delete_options[@]}" \
+    -e "ssh ${ssh_options[*]}" \
+    "$@" "$origin" "$next"/; then
+
     status=$?
 
     if [ "$BACKUP_RSYNC_IGNORE_VANISHED" -eq 1 ] && [ "$status" -eq 24 ]; then
