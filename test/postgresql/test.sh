@@ -34,6 +34,12 @@ run_backup_service() {
 
   # Wait for it to finish:
   while [ "$(get_service_state)" = "active" ]; do :; done
+
+  if [ "$(get_service_state)" = "failed" ]; then
+    echo >&2 "ERROR: backup service failed: "
+    journalctl >&2 --no-pager --unit="$service"
+    exit 1
+  fi
 }
 
 # Ensure the backup doesn't run while we're testing:

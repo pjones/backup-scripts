@@ -29,6 +29,12 @@ run_backup_service() {
 
   # Wait for it to finish:
   while [ "$(get_service_state)" = "active" ]; do :; done
+
+  if [ "$(get_service_state)" = "failed" ]; then
+    echo >&2 "ERROR: backup service failed: "
+    journalctl >&2 --no-pager --unit="$service"
+    exit 1
+  fi
 }
 
 # Returns the most recent backup directory.
@@ -39,6 +45,11 @@ most_recent_backup() {
 # Prepare a fake file for backing up:
 mkdir /tmp/backup
 echo OKAY >/tmp/backup/file
+
+# Put a symbolic link in the backup directory to make sure we handle
+# it correctly:
+(cd /tmp/backup &&
+  ln -s "$(realpath "$(type -P sort)")" sort)
 
 # Manually start the backup.
 systemctl stop "$timer"
@@ -69,5 +80,12 @@ file_b=$(stat --printf %i "$last_backup/file")
 
 if [ "$file_a" -ne "$file_b" ]; then
   echo >&2 "ERROR: backing up the same file twice used two inodes!"
+  exit 1
+fi
+
+if [ ! -L "$last_backup/sort" ]; then
+  echo >&2 "ERROR: symbolic link wasn't backup up properly"
+  ls -l "$last_backup" >&2
+  stat >&2 "$last_backup/sort"
   exit 1
 fi
