@@ -18,6 +18,7 @@ backup_to_mount_point /mnt/backup/home
 exclude_start
 exclude_sccs
 exclude_log_directories
+exclude_dir pjones/archive pjones/backup
 backup_via_rdiff
 
 ################################################################################
