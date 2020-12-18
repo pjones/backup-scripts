@@ -36,6 +36,7 @@ pkgs.nixosTest {
             remote.user = "root";
             local.key = "/tmp/key";
             local.services = [ "sshd.service" ];
+            extraRsyncOptions = [ "--progress" "--stats" ];
           }
         ];
       };

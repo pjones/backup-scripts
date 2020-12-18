@@ -110,6 +110,15 @@ let
         '';
       };
 
+      extraRsyncOptions = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = ''
+          Extra options to pass to rsync.  They will be properly
+          escaped when passed to the rsync script.
+        '';
+      };
+
       preScript = lib.mkOption {
         type = lib.types.lines;
         default = "";
@@ -148,27 +157,34 @@ let
         SupplementaryGroups = opts.local.groups;
       };
 
-      script = ''
-        export BACKUP_LIB_DIR=${cfg.package}/lib
-        export BACKUP_LOG_DIR=stdout
-        export BACKUP_LOG_ADD_DATE=no
-        export BACKUP_SSH_KEY=${toString opts.local.key}
-        export BACKUP_SSH_PORT=${toString opts.remote.port}
-        . "${cfg.package}/lib/backup.sh"
+      script =
+        let rsyncCmd =
+          "backup_via_rsync "
+          + lib.concatMapStringsSep " " lib.escapeShellArg
+            ([
+              "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}"
+              opts.local.directory
+            ] ++ opts.extraRsyncOptions);
+        in
+        ''
+          export BACKUP_LIB_DIR=${cfg.package}/lib
+          export BACKUP_LOG_DIR=stdout
+          export BACKUP_LOG_ADD_DATE=no
+          export BACKUP_SSH_KEY=${toString opts.local.key}
+          export BACKUP_SSH_PORT=${toString opts.remote.port}
+          . "${cfg.package}/lib/backup.sh"
 
-      ''
-      + opts.preScript
-      + ''
+        ''
+        + opts.preScript
+        + ''
 
         log "starting backup_via_rsync"
-        backup_via_rsync \
-          "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}" \
-          "${opts.local.directory}"
+        ${rsyncCmd}
 
         log "checking for older backups that need to be purged..."
         backup-purge.sh \
           -k "${toString opts.local.keep}" \
-          -d "${opts.local.directory}"
+          -d ${lib.escapeShellArg opts.local.directory}
       '';
     };
 
