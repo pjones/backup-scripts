@@ -92,7 +92,7 @@ backup_via_rsync() {
   log "backing up $origin to $next"
 
   if ! rsync \
-    -aFkLv "${delete_options[@]}" \
+    -aFv "${delete_options[@]}" \
     -e "ssh ${ssh_options[*]}" \
     "$@" "$origin" "$next"/; then
 

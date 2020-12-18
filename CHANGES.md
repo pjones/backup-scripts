@@ -12,4 +12,11 @@
     database before restoring, and OIDs are no longer included in the
     backup.
 
+  * The `backup_via_rsync` function no longer passes the following
+    flags to `rsync`.  If you need them you should give them to
+    `backup_via_rsync` and it will forward them to `rsync`:
+
+    - `--copy-dirlinks`
+    - `--copy-links`
+
   * Automatic detection of host exclude files has been removed.
