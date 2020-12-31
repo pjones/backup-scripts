@@ -23,20 +23,28 @@ pkgs.nixosTest {
       services.openssh.enable = true;
       environment.systemPackages = [ tests ];
 
-      users.users.root.openssh.authorizedKeys.keys = [
-        (builtins.readFile ../data/ssh.id_ed25519.pub)
-      ];
+      scripts.backup.user.enable = true;
+
+      users.users.backup = {
+        # Let the backup user accept SSH connections:
+        shell = pkgs.bashInteractive;
+        openssh.authorizedKeys.keys = [
+          (builtins.readFile ../data/ssh.id_ed25519.pub)
+        ];
+      };
 
       scripts.backup.rsync = {
         enable = true;
         schedules = [
           {
-            remote.host = "localhost";
-            remote.directory = "/tmp/backup";
-            remote.user = "root";
+            extraRsyncOptions = [ "--progress" "--stats" ];
+            local.keep = 2;
             local.key = "/tmp/key";
             local.services = [ "sshd.service" ];
-            extraRsyncOptions = [ "--progress" "--stats" ];
+            local.user = "backup";
+            remote.directory = "/tmp/backup";
+            remote.host = "localhost";
+            remote.user = "backup";
           }
         ];
       };
@@ -49,6 +57,7 @@ pkgs.nixosTest {
         "${../data/ssh.id_ed25519}", "/tmp/key"
     )
     machine.succeed("chmod 0600 /tmp/key")
+    machine.succeed("chown backup /tmp/key")
     machine.wait_for_unit("sshd.service")
     machine.succeed("rsync-backup-test.sh")
   '';

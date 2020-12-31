@@ -16,6 +16,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
   buildInputs = with pkgs; [
     bash
     coreutils
+    e2fsprogs
     eject
     findutils
     gnused

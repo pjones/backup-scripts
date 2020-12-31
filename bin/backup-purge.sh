@@ -8,6 +8,7 @@ set -o pipefail
 ################################################################################
 option_type="f"
 option_keep=14
+option_chmod=0
 
 ################################################################################
 usage() {
@@ -17,11 +18,12 @@ Usage: purge-old-files.sh [options] directory
   -d      Purge directories instead of files
   -h      This message
   -k NUM  Keep NUM existing files
+  -w      Make files writable so they can be removed
 EOF
 }
 
 ################################################################################
-while getopts "hdk:" o; do
+while getopts "hdk:w" o; do
   case "${o}" in
   h)
     usage
@@ -34,6 +36,10 @@ while getopts "hdk:" o; do
 
   k)
     option_keep=$OPTARG
+    ;;
+
+  w)
+    option_chmod=1
     ;;
 
   *)
@@ -70,7 +76,19 @@ if [ "$count" -gt "$option_keep" ]; then
 
   for entry in "${to_remove[@]}"; do
     echo "purging old backup: $entry"
-    rm -r "$entry"
+
+    if [ "$option_chmod" -eq 1 ]; then
+      chmod -R u+w "$entry" || :
+      chattr -R -i "$entry" || :
+    fi
+
+    rm \
+      --force \
+      --one-file-system \
+      --preserve-root \
+      --recursive \
+      --verbose \
+      "$entry"
   done
 else
   echo "no backups need to be purged yet"

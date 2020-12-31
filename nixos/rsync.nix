@@ -182,7 +182,7 @@ let
         ${rsyncCmd}
 
         log "checking for older backups that need to be purged..."
-        backup-purge.sh \
+        backup-purge.sh -w \
           -k "${toString opts.local.keep}" \
           -d ${lib.escapeShellArg opts.local.directory}
       '';
