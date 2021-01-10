@@ -83,6 +83,11 @@ if [ "$(stat -c %a "$first_backup/dir/file")" != 400 ]; then
   exit 1
 fi
 
+if [ ! -L "$dir/latest" ]; then
+  echo >&2 "ERROR: the 'latest' symlink was not created"
+  exit 1
+fi
+
 # Run another backup and verify the file was hard linked:
 sleep 1 # Ensure we wait long enough to get a new file name
 run_backup_service
@@ -126,7 +131,7 @@ if [ -e "$first_backup" ]; then
   exit 1
 fi
 
-if [ "$(find "$dir" -mindepth 1 -maxdepth 1 | wc -l)" -ne 2 ]; then
+if [ "$(find "$dir" -mindepth 1 -maxdepth 1 -type d | wc -l)" -ne 2 ]; then
   echo >&2 "ERROR: backup directory should have been purged"
   exit 1
 fi

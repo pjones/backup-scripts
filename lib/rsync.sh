@@ -106,4 +106,10 @@ backup_via_rsync() {
       exit "$status"
     fi
   fi
+
+  log "updating 'latest' symlink"
+  (
+    cd "$destination" &&
+      ln -nfs "$(basename "$next")" latest
+  )
 }
