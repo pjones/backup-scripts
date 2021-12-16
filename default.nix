@@ -1,12 +1,6 @@
 { pkgs ? import <nixpkgs> { }
 }:
 
-with pkgs.lib;
-let
-  # Build a PATH list for each dependency:
-  mkPkgPath = concatMapStringsSep ":" (pkg: "${pkg}/bin");
-
-in
 pkgs.stdenvNoCC.mkDerivation rec {
   name = "backup-scripts";
   meta.description = "Peter's backup scripts";
@@ -29,7 +23,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
 
   installPhase = ''
     # Variables to substitute into the scripts:
-    export pathextras=${mkPkgPath buildInputs}
+    export pathextras=${pkgs.lib.makeBinPath buildInputs}
     export libdir=$out/lib
 
     for f in $(find bin lib examples scripts -type f); do

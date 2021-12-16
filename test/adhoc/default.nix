@@ -1,5 +1,4 @@
-{ sources ? import ../../nix/sources.nix
-, pkgs ? import sources.nixpkgs { }
+{ pkgs ? import <nixpkgs> { }
 }:
 let
   unit = "backup-adhoc-test";
