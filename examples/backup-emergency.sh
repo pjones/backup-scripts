@@ -50,9 +50,14 @@ cleanup() {
 trap cleanup EXIT
 
 ################################################################################
+# Generate some files:
+~/notes/bin/export-routines.sh
+mv ~/notes/home-maintenance.html ~/notes/zettelkasten/.neuron/output/
+
+################################################################################
 # Passwords:
 password-store-to-encrypted-image -M -p machines/hq.pmade.com/encrypted-disk-images
-sync ~/.password-store.mnt/ Passwords
+sync ~/.password-store.mnt Passwords
 
 ################################################################################
 # Other directories:
@@ -61,3 +66,5 @@ sync /var/lib/media/music Music
 sync ~/documents/books-papers Books
 sync ~/documents/pictures/photos Photos
 sync ~/documents/taxes/returns Taxes
+sync ~/notes/zettelkasten/.neuron/output Notes
+sync ~/notes/houses Houses
