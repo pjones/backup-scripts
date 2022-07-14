@@ -52,6 +52,12 @@ let
           to require certain systemd mounts to exist.
         '';
       };
+
+      serviceName = lib.mkOption {
+        type = lib.types.str;
+        default = "backup-adhoc-${name}";
+        description = "The name to use for the systemd units.";
+      };
     };
 
     config = {
@@ -83,7 +89,7 @@ let
   toSystemd = f:
     lib.foldr
       (a: b:
-        let unit = "backup-adhoc-${a.name}";
+        let unit = a.serviceName;
         in b // { ${unit} = f unit a; })
       { }
       (lib.attrValues cfg.adhoc);

@@ -47,8 +47,9 @@
         lib.optionalAttrs pkgs.stdenv.isLinux
           {
             adhoc = import test/adhoc { inherit pkgs; };
-            rsync = import test/rsync { inherit pkgs; };
             postgresql = import test/postgresql { inherit pkgs; };
+            rsync = import test/rsync { inherit pkgs; };
+            snapshot = import test/snapshot { inherit pkgs; };
           });
 
       devShell = forAllSystems

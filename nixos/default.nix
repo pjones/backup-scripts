@@ -15,6 +15,7 @@ in
     ./adhoc.nix
     ./postgresql.nix
     ./rsync.nix
+    ./snapshot.nix
   ];
 
   #### Interface
