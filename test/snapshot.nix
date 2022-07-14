@@ -9,7 +9,7 @@ pkgs.nixosTest {
 
   nodes = {
     machine = { config, pkgs, ... }: {
-      imports = [ ../../nixos ];
+      imports = [ ../nixos ];
 
       scripts.backup.snapshot.test = {
         user = "root";

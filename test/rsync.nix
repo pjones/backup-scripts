@@ -8,7 +8,7 @@ let
 
     installPhase = ''
       mkdir -p "$out/bin"
-      install -m 0555 test.sh "$out/bin/rsync-backup-test.sh"
+      install -m 0555 rsync.sh "$out/bin/rsync-backup-test.sh"
     '';
   };
 
@@ -18,7 +18,7 @@ pkgs.nixosTest {
 
   nodes = {
     machine = { config, pkgs, ... }: {
-      imports = [ ../../nixos ];
+      imports = [ ../nixos ];
       services.openssh.enable = true;
       environment.systemPackages = [ tests ];
 
@@ -28,7 +28,7 @@ pkgs.nixosTest {
         # Let the backup user accept SSH connections:
         shell = pkgs.bashInteractive;
         openssh.authorizedKeys.keys = [
-          (builtins.readFile ../data/ssh.id_ed25519.pub)
+          (builtins.readFile data/ssh.id_ed25519.pub)
         ];
       };
 
@@ -53,7 +53,7 @@ pkgs.nixosTest {
   testScript = ''
     start_all()
     machine.copy_from_host(
-        "${../data/ssh.id_ed25519}", "/tmp/key"
+        "${data/ssh.id_ed25519}", "/tmp/key"
     )
     machine.succeed("chmod 0600 /tmp/key")
     machine.succeed("chown backup /tmp/key")

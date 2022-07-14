@@ -2,11 +2,13 @@
   description = "Peter's Backup Scripts";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-21.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
   };
 
   outputs = { self, nixpkgs }:
     let
+      inherit (nixpkgs) lib;
+
       # List of supported systems:
       supportedSystems = [
         "x86_64-linux"
@@ -31,31 +33,23 @@
         backup-scripts = import ./. { pkgs = nixpkgsFor.${system}; };
       });
 
-      defaultPackage =
-        forAllSystems (system: self.packages.${system}.backup-scripts);
-
-      overlay = final: prev: {
-        pjones = (prev.pjones or { }) //
-          { backup-scripts = self.packages.${prev.system}.backup-scripts; };
+      overlays.backup-scripts = final: prev: (prev.pjones or { }) // {
+        backup-scripts = self.packages.${prev.system}.backup-scripts;
       };
 
       checks = forAllSystems (system:
-        let
-          pkgs = nixpkgsFor.${system};
-          lib = pkgs.lib;
-        in
-        lib.optionalAttrs pkgs.stdenv.isLinux
-          {
-            adhoc = import test/adhoc { inherit pkgs; };
-            postgresql = import test/postgresql { inherit pkgs; };
-            rsync = import test/rsync { inherit pkgs; };
-            snapshot = import test/snapshot { inherit pkgs; };
-          });
+        let pkgs = nixpkgsFor.${system}; in
+        lib.optionalAttrs pkgs.stdenv.isLinux {
+          adhoc = import test/adhoc.nix { inherit pkgs; };
+          postgresql = import test/postgresql.nix { inherit pkgs; };
+          rsync = import test/rsync.nix { inherit pkgs; };
+          snapshot = import test/snapshot.nix { inherit pkgs; };
+        });
 
-      devShell = forAllSystems
-        (system:
-          nixpkgsFor.${system}.mkShell {
-            inputsFrom = builtins.attrValues self.packages.${system};
-          });
+      devShells = forAllSystems (system: {
+        default = nixpkgsFor.${system}.mkShell {
+          inputsFrom = builtins.attrValues self.packages.${system};
+        };
+      });
     };
 }

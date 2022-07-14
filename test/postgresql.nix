@@ -8,7 +8,7 @@ let
 
     installPhase = ''
       mkdir -p "$out/bin"
-      install -m 0555 test.sh "$out/bin/postgresql-backup-test.sh"
+      install -m 0555 postgresql.sh "$out/bin/postgresql-backup-test.sh"
     '';
   };
 
@@ -19,7 +19,7 @@ pkgs.nixosTest {
 
   nodes = {
     machine = { config, pkgs, ... }: {
-      imports = [ ../../nixos ];
+      imports = [ ../nixos ];
       environment.systemPackages = [ tests ];
 
       # Set up PostgreSQL:
