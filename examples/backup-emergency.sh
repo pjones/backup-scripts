@@ -50,21 +50,32 @@ cleanup() {
 trap cleanup EXIT
 
 ################################################################################
-# Generate some files:
-~/notes/bin/export-routines.sh
-mv ~/notes/home-maintenance.html ~/notes/zettelkasten/.neuron/output/
+# Notes:
+(cd ~/notes && nix build)
+sync ~/notes/result Notes --copy-links
 
 ################################################################################
 # Passwords:
 password-store-to-encrypted-image -M -p machines/hq.pmade.com/encrypted-disk-images
+
+# Generate README.html
+(
+  cd ~/.password-store.mnt &&
+    ebatch \
+      --funcall package-initialize \
+      --eval '(setq org-confirm-babel-evaluate nil)' \
+      --eval '(find-file "README.org")' \
+      --eval '(org-html-export-to-html)'
+)
+
+# Sync and unmount:
 sync ~/.password-store.mnt Passwords
+mount-encrypted-dev -u ~/.password-store.mnt
 
 ################################################################################
 # Other directories:
-sync /var/lib/media/home-videos Videos
+sync /var/lib/media/family Videos
 sync /var/lib/media/music Music
 sync ~/documents/books-papers Books
 sync ~/documents/pictures/photos Photos
 sync ~/documents/taxes/returns Taxes
-sync ~/notes/zettelkasten/.neuron/output Notes
-sync ~/notes/houses Houses
