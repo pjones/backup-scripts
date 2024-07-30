@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.scripts.backup;
-  port = builtins.head config.services.openssh.ports;
 
   # Sanitize the name of a directory.
   cleanDir = path:
@@ -25,7 +24,7 @@ let
 
         port = lib.mkOption {
           type = lib.types.ints.positive;
-          default = port;
+          default = 22;
           example = 22;
           description = "SSH port on the remote machine.";
         };
@@ -158,13 +157,14 @@ let
       };
 
       script =
-        let rsyncCmd =
-          "backup_via_rsync "
-          + lib.concatMapStringsSep " " lib.escapeShellArg
-            ([
-              "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}"
-              opts.local.directory
-            ] ++ opts.extraRsyncOptions);
+        let
+          rsyncCmd =
+            "backup_via_rsync "
+            + lib.concatMapStringsSep " " lib.escapeShellArg
+              ([
+                "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}"
+                opts.local.directory
+              ] ++ opts.extraRsyncOptions);
         in
         ''
           export BACKUP_LIB_DIR=${cfg.package}/lib
