@@ -14,6 +14,7 @@ export BACKUP_NAME
 ################################################################################
 export option_verbose=0
 export option_force=0
+export option_keep_mounted=0
 
 ################################################################################
 usage() {
@@ -23,12 +24,13 @@ Usage: $name [options]
 
   -h      This message
   -f      Preform dangerous things (force)
+  -k      Don't unmount any disks mounted during the backup
   -v      Enable verbose logging
 EOF
 }
 
 ################################################################################
-while getopts "hfv" o; do
+while getopts "hfkv" o; do
   case "${o}" in
   h)
     usage
@@ -37,6 +39,10 @@ while getopts "hfv" o; do
 
   f)
     option_force=1
+    ;;
+
+  k)
+    option_keep_mounted=1
     ;;
 
   v)
