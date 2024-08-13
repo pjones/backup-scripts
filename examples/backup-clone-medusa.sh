@@ -23,6 +23,7 @@ cleanup() {
 sync() {
   local from=$1
   local to=$2
+  shift 2
 
   rsync \
     --verbose \
@@ -34,8 +35,8 @@ sync() {
     --delete-excluded \
     --prune-empty-dirs \
     --human-readable \
-    --exclude="lost+found" \
-    "$from" "$to"
+    --filter="- lost+found" \
+    "$@" "$from" "$to"
 
 }
 
@@ -51,8 +52,13 @@ main() {
 
   sudo mkdir -p "$mount_point/home" "$mount_point/archive"
   sudo chown pjones:pjones "$mount_point/home" "$mount_point/archive"
-  sync ~/ "$mount_point/home/"
-  sync /var/lib/backup/archive "$mount_point/archive/"
+
+  sync \
+    ~/ "$mount_point/home/" \
+    --filter="- mnt"
+
+  sync \
+    /var/lib/backup/archive "$mount_point/archive/"
 }
 
 ################################################################################
