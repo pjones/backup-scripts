@@ -20,11 +20,18 @@ sync() {
   local dest=$2
   shift 2
 
+  local command=("rsync")
+
+  if [ $# -gt 0 ] && [ "$1" = "--sync-from" ]; then
+    command=("ssh" "$2" "--" "rsync")
+    shift 2
+  fi
+
   ssh -p"$BACKUP_PORT" \
     "${BACKUP_USER}@${BACKUP_HOST}" \
     mkdir -p "$BACKUP_DIR/$dest"
 
-  rsync \
+  "${command[@]}" \
     --verbose \
     --recursive \
     --links \
@@ -48,6 +55,11 @@ cleanup() {
   fi
 }
 trap cleanup EXIT
+
+################################################################################
+# FIXME: Need a ssh entry for frau that uses port 22, then remove the
+# --rsh option in the sync function.
+# sync gitea/repos Code --sync-from kilgrave.pmade.com
 
 ################################################################################
 # Notes:
