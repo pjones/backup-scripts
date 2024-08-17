@@ -86,8 +86,8 @@ mount-encrypted-dev -u ~/.password-store.mnt
 
 ################################################################################
 # Other directories:
-sync /var/lib/media/family Videos
-sync /var/lib/media/music Music
+# sync /var/lib/media/family Videos
+# sync /var/lib/media/music Music
 sync ~/documents/books-papers Books
 sync ~/documents/pictures/photos Photos
 sync ~/documents/taxes/returns Taxes
