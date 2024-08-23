@@ -105,6 +105,7 @@ main() {
   else
     do_backup ~/documents documents
     do_backup ~/keys keys
+    do_backup ~/.password-store passwords
   fi
 
   # All hosts:

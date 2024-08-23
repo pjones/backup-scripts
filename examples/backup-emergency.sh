@@ -9,7 +9,7 @@ set -eu
 set -o pipefail
 
 ################################################################################
-BACKUP_HOST=frau.pmade.com
+BACKUP_HOST=10.0.1.11
 BACKUP_USER=sjones
 BACKUP_PORT=22
 BACKUP_DIR="/Volumes/Emergency"
