@@ -82,6 +82,21 @@ do_backup() {
 }
 
 ################################################################################
+gitea_latest() {
+  local gitea
+  local src_dir=/var/lib/backup/gitea
+  local dst_dir="$mount_point/ursula/gitea"
+
+  # shellcheck disable=SC2029
+  gitea=$(ssh root@ursula "ls -t $src_dir | head -1")
+  mkdir --parents "$dst_dir"
+
+  rsync \
+    "root@ursula:$src_dir/$gitea" \
+    "$dst_dir/latest.zip"
+}
+
+################################################################################
 main() {
   if [ ! -e "$mount_point" ] || ! mountpoint --quiet "$mount_point"; then
     echo "Unlocking and mounting backup disk..."
@@ -109,7 +124,7 @@ main() {
   fi
 
   # All hosts:
-  do_sync root@ursula:/var/lib/backup/gitea ursula/gitea
+  gitea_latest
 }
 
 ################################################################################
