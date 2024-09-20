@@ -91,6 +91,7 @@ gitea_latest() {
   gitea=$(ssh root@ursula "ls -t $src_dir | head -1")
   mkdir --parents "$dst_dir"
 
+  log "gitea: $gitea -> $dst_dir/latest.zip"
   rsync \
     "root@ursula:$src_dir/$gitea" \
     "$dst_dir/latest.zip"
