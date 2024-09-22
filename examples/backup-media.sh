@@ -49,11 +49,10 @@ main() {
     --filter="+ tvshows/The Big Bang Theory (2007)" \
     --filter="+ tvshows/The Love Boat (1977)" \
     --filter="+ tvshows/The Munsters (1964)" \
-    --filter="- audiobooks" \
+    --filter="+ audiobooks" \
     --filter="- comedy" \
     --filter="- education" \
     --filter="- fitness" \
-    --filter="- movies" \
     --filter="- pictures" \
     --filter="- random" \
     --filter="- tvshows/*" \
