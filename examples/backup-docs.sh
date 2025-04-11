@@ -99,6 +99,9 @@ gitea_latest() {
 
 ################################################################################
 main() {
+  local host
+  host=$(hostname)
+
   if [ ! -e "$mount_point" ] || ! mountpoint --quiet "$mount_point"; then
     echo "Unlocking and mounting backup disk..."
     udisksctl unlock \
@@ -110,17 +113,17 @@ main() {
 
   trap cleanup EXIT
 
-  if [ "$(hostname)" = "medusa" ]; then
-    do_sync ~/bin medusa/bin
-    do_sync ~/core medusa/core
-    do_sync ~/documents medusa/documents
-    do_sync ~/keys medusa/keys
-    do_sync ~/src/rc/cassini medusa/cassini
-    do_sync ~/texmf medusa/texmf
-    do_sync ~/training medusa/training
+  if [ "$host" = "medusa" ]; then
+    do_sync ~/bin "$host/bin"
+    do_sync ~/core "$host/core"
+    do_sync ~/documents "$host/documents"
+    do_sync ~/keys "$host/keys"
+    do_sync ~/src/rc/cassini "$host/cassini"
+    do_sync ~/texmf "$host/texmf"
+    do_sync ~/training "$host/training"
   else
-    do_backup ~/documents documents
-    do_backup ~/keys keys
+    do_backup ~/documents "$host/documents"
+    do_backup ~/keys "$host/keys"
     do_backup ~/.password-store passwords
   fi
 
