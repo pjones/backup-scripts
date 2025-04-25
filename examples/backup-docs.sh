@@ -20,6 +20,8 @@ option_keep_mounted=0 # Changed by ../lib/backup.sh
 locked_uuid=4da1879b-efd6-45fc-bd76-b2170008f839
 unlocked_uuid=e549177c-0e84-4e12-be3f-a28b1476fc47
 mount_point=/run/media/pjones/$unlocked_uuid
+remote_vps_name=slugworth
+remote_vps_host="${remote_vps_name}.private.pmade.com"
 
 ################################################################################
 usage() {
@@ -82,19 +84,41 @@ do_backup() {
 }
 
 ################################################################################
-gitea_latest() {
-  local gitea
-  local src_dir=/var/lib/backup/gitea
-  local dst_dir="$mount_point/ursula/gitea"
+sync_latest_archive_from_vps() {
+  local src_dir=$1
+  local dst_dir=$2
+  local latest
 
   # shellcheck disable=SC2029
-  gitea=$(ssh root@ursula "ls -t $src_dir | head -1")
+  latest=$(ssh root@${remote_vps_host} "ls -t $src_dir | head -1")
   mkdir --parents "$dst_dir"
 
-  log "gitea: $gitea -> $dst_dir/latest.zip"
+  log "$latest -> $dst_dir/"
   rsync \
-    "root@ursula:$src_dir/$gitea" \
-    "$dst_dir/latest.zip"
+    --checksum \
+    "root@${remote_vps_host}:$src_dir/$latest" \
+    "$dst_dir/latest.${latest##*.}"
+}
+
+################################################################################
+gitea_latest() {
+  sync_latest_archive_from_vps \
+    "/var/lib/backup/gitea" \
+    "$mount_point/$remote_vps_name/gitea"
+}
+
+################################################################################
+miniflux_latest() {
+  sync_latest_archive_from_vps \
+    "/var/lib/pgbackup/miniflux" \
+    "$mount_point/$remote_vps_name/miniflux"
+}
+
+################################################################################
+backup_immich() {
+  do_backup \
+    "root@$remote_vps_host:/var/lib/immich" \
+    "$remote_vps_name/immich"
 }
 
 ################################################################################
@@ -129,6 +153,8 @@ main() {
 
   # All hosts:
   gitea_latest
+  miniflux_latest
+  backup_immich
 }
 
 ################################################################################
