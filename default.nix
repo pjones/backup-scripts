@@ -18,6 +18,7 @@ pkgs.stdenvNoCC.mkDerivation rec {
     rdiff-backup
     rsync
     utillinux
+    virtnbdbackup
     xz
   ];
 
