@@ -13,11 +13,11 @@ let
   };
 
 in
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "rsync-backup-test";
 
   nodes = {
-    machine = { config, pkgs, ... }: {
+    machine = { pkgs, ... }: {
       imports = [ ../nixos ];
       services.openssh.enable = true;
       environment.systemPackages = [ tests ];

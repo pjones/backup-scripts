@@ -90,7 +90,7 @@ let
     path = [
       pkgs.bzip2
       pkgs.gnutar
-      pkgs.utillinux
+      pkgs.util-linux
       config.scripts.backup.package
     ] ++ snapshot.path;
 
@@ -146,4 +146,3 @@ in
     scripts.backup.adhoc = lib.mapAttrs (_name: snapshotToScript) cfg;
   };
 }
-

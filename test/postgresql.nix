@@ -14,11 +14,11 @@ let
 
   database = "example";
 in
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "backup-postgresql-test";
 
   nodes = {
-    machine = { config, pkgs, ... }: {
+    machine = { ... }: {
       imports = [ ../nixos ];
       environment.systemPackages = [ tests ];
 

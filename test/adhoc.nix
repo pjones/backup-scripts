@@ -4,11 +4,11 @@ let
   unit = "backup-adhoc-test";
 
 in
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = "backup-script-test";
 
   nodes = {
-    machine = { config, pkgs, ... }: {
+    machine = { ... }: {
       imports = [ ../nixos ];
 
       scripts.backup.adhoc.test = {

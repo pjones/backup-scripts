@@ -8,7 +8,7 @@ let
   user = "backup";
 
   # The scripts to use:
-  package = import ../. { inherit pkgs; };
+  package = pkgs.callPackage ../. { };
 in
 {
   imports = [

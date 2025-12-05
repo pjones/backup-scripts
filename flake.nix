@@ -2,7 +2,7 @@
   description = "Peter's Backup Scripts";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   };
 
   outputs = { self, nixpkgs }:
@@ -20,34 +20,32 @@
       ];
 
       # Function to generate a set based on supported systems:
-      forAllSystems = f:
-        nixpkgs.lib.genAttrs supportedSystems (system: f system);
-
-      # Attribute set of nixpkgs for each system:
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
+      each = f:
+        nixpkgs.lib.genAttrs supportedSystems (system:
+          let pkgs = import nixpkgs { inherit system; };
+          in f pkgs system);
     in
     {
       nixosModules.backup-scripts = import ./nixos;
 
-      packages = forAllSystems (system: {
-        backup-scripts = import ./. { pkgs = nixpkgsFor.${system}; };
+      packages = each (pkgs: system: {
+        default = self.packages.${system}.backup-scripts;
+        backup-scripts = pkgs.callPackage ./. { };
       });
 
-      overlays.backup-scripts = final: prev: (prev.pjones or { }) // {
-        backup-scripts = self.packages.${prev.system}.backup-scripts;
+      overlays.default = final: prev: (prev.pjones or { }) // {
+        backup-scripts = self.packages.${prev.stdenv.hostPlatform.system}.backup-scripts;
       };
 
-      checks = forAllSystems (system:
-        let pkgs = nixpkgsFor.${system}; in
-        lib.optionalAttrs pkgs.stdenv.isLinux {
-          adhoc = import test/adhoc.nix { inherit pkgs; };
-          postgresql = import test/postgresql.nix { inherit pkgs; };
-          rsync = import test/rsync.nix { inherit pkgs; };
-          snapshot = import test/snapshot.nix { inherit pkgs; };
-        });
+      checks = each (pkgs: system: lib.optionalAttrs pkgs.stdenv.isLinux {
+        adhoc = import test/adhoc.nix { inherit pkgs; };
+        postgresql = import test/postgresql.nix { inherit pkgs; };
+        rsync = import test/rsync.nix { inherit pkgs; };
+        snapshot = import test/snapshot.nix { inherit pkgs; };
+      });
 
-      devShells = forAllSystems (system: {
-        default = nixpkgsFor.${system}.mkShell {
+      devShells = each (pkgs: system: {
+        default = pkgs.mkShell {
           inputsFrom = builtins.attrValues self.packages.${system};
         };
       });

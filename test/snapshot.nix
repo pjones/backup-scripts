@@ -4,11 +4,11 @@ let
   unit = "backup-snapshot-test";
 
 in
-pkgs.nixosTest {
+pkgs.testers.nixosTest {
   name = unit;
 
   nodes = {
-    machine = { config, pkgs, ... }: {
+    machine = { ... }: {
       imports = [ ../nixos ];
 
       scripts.backup.snapshot.test = {

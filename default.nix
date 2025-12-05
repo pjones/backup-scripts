@@ -1,13 +1,26 @@
-{ pkgs ? import <nixpkgs> { }
+{ stdenvNoCC
+, lib
+, bash
+, coreutils
+, e2fsprogs
+, eject
+, findutils
+, gnused
+, openssh
+, rdiff-backup
+, rsync
+, util-linux
+, virtnbdbackup
+, xz
 }:
 
-pkgs.stdenvNoCC.mkDerivation rec {
+stdenvNoCC.mkDerivation rec {
   name = "backup-scripts";
   meta.description = "Peter's backup scripts";
   phases = [ "unpackPhase" "installPhase" "fixupPhase" ];
   src = ./.;
 
-  buildInputs = with pkgs; [
+  buildInputs = [
     bash
     coreutils
     e2fsprogs
@@ -17,14 +30,14 @@ pkgs.stdenvNoCC.mkDerivation rec {
     openssh
     rdiff-backup
     rsync
-    utillinux
+    util-linux
     virtnbdbackup
     xz
   ];
 
   installPhase = ''
     # Variables to substitute into the scripts:
-    export pathextras=${pkgs.lib.makeBinPath buildInputs}
+    export pathextras=${lib.makeBinPath buildInputs}
     export libdir=$out/lib
 
     for f in $(find bin lib examples scripts -type f); do
