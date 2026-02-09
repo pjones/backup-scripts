@@ -149,6 +149,7 @@ main() {
     do_backup ~/documents "$host/documents"
     do_backup ~/keys "$host/keys"
     do_backup ~/.password-store passwords
+    do_backup ~/.var/app "$host/flatpack" --exclude='**/cache/'
   fi
 
   # All hosts:
