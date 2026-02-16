@@ -21,7 +21,7 @@ locked_uuid=4da1879b-efd6-45fc-bd76-b2170008f839
 unlocked_uuid=e549177c-0e84-4e12-be3f-a28b1476fc47
 mount_point=/run/media/pjones/$unlocked_uuid
 remote_vps_name=slugworth
-remote_vps_host="${remote_vps_name}.private.pmade.com"
+remote_vps_host="${remote_vps_name}.private.jonesbunch.com"
 
 ################################################################################
 usage() {
