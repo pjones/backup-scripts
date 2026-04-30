@@ -97,7 +97,6 @@ let
     script = ''
       set -eu
       set -o pipefail
-      umask 077
 
       export BACKUP_TIMESTAMP="$(date +%Y-%m-%d.%s)"
       export BACKUP_LIB_DIR=${config.scripts.backup.package}/lib

@@ -1,15 +1,17 @@
 # Simple backups for PostgreSQL.
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   cfg = config.scripts.backup;
   pguser = "postgres";
 
   # systemd tmp file rules:
-  tmpfiles = database:
+  tmpfiles =
+    database:
     lib.concatStringsSep " " [
       "d"
       ''"${cfg.postgresql.directory}/${database}"''
@@ -20,29 +22,51 @@ let
     ];
 
   # systemd service:
-  service = _unit: database: {
-    description = "Backup PostgreSQL Database ${database}";
-    after = [ "postgresql.service" ];
+  service =
+    _unit: database:
+    let
+      preStart = pkgs.writeShellScript "${database}-pre-backup" ''
+        # Allow the database user write access to the backup directory:
+        ${pkgs.acl}/bin/setfacl \
+          -m user:${pguser}:rX \
+          "$(dirname "${cfg.postgresql.directory}")" \
+          "${cfg.postgresql.directory}"
+      '';
 
-    path = [
-      pkgs.coreutils
-      config.services.postgresql.package
-      cfg.package
-    ];
+      postStop = pkgs.writeShellScript "${database}-post-backup" ''
+        ${pkgs.acl}/bin/setfacl \
+          --recursive \
+          -m user:${cfg.user.name}:rX \
+          "${cfg.postgresql.directory}/${database}"
+      '';
+    in
+    {
+      description = "Backup PostgreSQL Database ${database}";
+      after = [ "postgresql.service" ];
 
-    serviceConfig = {
-      Type = "simple";
-      User = pguser;
+      path = [
+        pkgs.coreutils
+        config.services.postgresql.package
+        cfg.package
+      ];
+
+      serviceConfig = {
+        Type = "simple";
+        User = pguser;
+        ExecStartPre = "+${preStart}";
+      }
+      // lib.optionalAttrs cfg.user.enable {
+        ExecStopPost = "+${postStop}";
+      };
+
+      script = ''
+        export BACKUP_DIRECTORY="${cfg.postgresql.directory}"
+        export BACKUP_LOG_DIR=stdout
+        backup-postgresql-dump.sh "${database}"
+        backup-purge.sh -k ${toString cfg.postgresql.keep} \
+          "${cfg.postgresql.directory}/${database}"
+      '';
     };
-
-    script = ''
-      export BACKUP_DIRECTORY="${cfg.postgresql.directory}"
-      export BACKUP_LOG_DIR=stdout
-      backup-postgresql-dump.sh "${database}"
-      backup-purge.sh -k ${toString cfg.postgresql.keep} \
-        "${cfg.postgresql.directory}/${database}"
-    '';
-  };
 
   # systemd timer:
   timer = unit: database: {
@@ -54,13 +78,15 @@ let
   };
 
   # Generate systemd services and timers.
-  toSystemd = f:
-    lib.foldr
-      (a: b:
-        let unit = "backup-postgresql-${a}";
-        in b // { "${unit}" = f unit a; })
-      { }
-      cfg.postgresql.databases;
+  toSystemd =
+    f:
+    lib.foldr (
+      a: b:
+      let
+        unit = "backup-postgresql-${a}";
+      in
+      b // { "${unit}" = f unit a; }
+    ) { } cfg.postgresql.databases;
 in
 {
   #### Interface
@@ -102,9 +128,10 @@ in
         services = toSystemd service;
         timers = toSystemd timer;
 
-        tmpfiles.rules =
-          [ "d ${cfg.postgresql.directory} 0750 ${user} ${pguser} -" ]
-          ++ map tmpfiles cfg.postgresql.databases;
+        tmpfiles.rules = [
+          "d ${cfg.postgresql.directory} 0750 ${user} ${pguser} -"
+        ]
+        ++ map tmpfiles cfg.postgresql.databases;
       };
     }
   );
