@@ -1,4 +1,5 @@
-{ pkgs ? import <nixpkgs> { }
+{
+  pkgs ? import <nixpkgs> { },
 }:
 let
   unit = "backup-snapshot-test";
@@ -8,16 +9,18 @@ pkgs.testers.nixosTest {
   name = unit;
 
   nodes = {
-    machine = { ... }: {
-      imports = [ ../nixos ];
+    machine =
+      { ... }:
+      {
+        imports = [ ../nixos ];
 
-      scripts.backup.snapshot.test = {
-        user = "root";
-        directory = "/etc";
-        destination = "/tmp/backup";
-        filePatterns = [ "issue" ];
+        scripts.backup.snapshot.test = {
+          user = "root";
+          directory = "/etc";
+          destination = "/tmp/backup";
+          filePatterns = [ "issue" ];
+        };
       };
-    };
   };
 
   testScript = ''

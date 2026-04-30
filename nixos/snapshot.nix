@@ -1,98 +1,107 @@
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   cfg = config.scripts.backup.snapshot;
 
-  snapshotType = { name, ... }: {
-    options = {
-      directory = lib.mkOption {
-        type = lib.types.path;
-        description = "The directory to take a snapshot of.";
-      };
+  snapshotType =
+    { name, ... }:
+    {
+      options = {
+        directory = lib.mkOption {
+          type = lib.types.path;
+          description = "The directory to take a snapshot of.";
+        };
 
-      destination = lib.mkOption {
-        type = lib.types.path;
-        description = "Directory where snapshots are stored.";
-      };
+        destination = lib.mkOption {
+          type = lib.types.path;
+          description = "Directory where snapshots are stored.";
+        };
 
-      filePatterns = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ "." ];
-        description = "List of shell globs to match files to capture.";
-      };
+        filePatterns = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ "." ];
+          description = "List of shell globs to match files to capture.";
+        };
 
-      keep = lib.mkOption {
-        type = lib.types.int;
-        default = 7;
-        description = "Number of old snapshots to keep.";
-      };
+        keep = lib.mkOption {
+          type = lib.types.int;
+          default = 7;
+          description = "Number of old snapshots to keep.";
+        };
 
-      schedule = lib.mkOption {
-        type = lib.types.str;
-        default = "*-*-* 02:00:00";
-        example = "*-*-* *:00/30:00";
-        description = ''
-          A systemd calendar specification to designate the frequency
-          of the backup.  You can use the "systemd-analyze calendar"
-          command to validate your calendar specification.
-        '';
-      };
+        schedule = lib.mkOption {
+          type = lib.types.str;
+          default = "*-*-* 02:00:00";
+          example = "*-*-* *:00/30:00";
+          description = ''
+            A systemd calendar specification to designate the frequency
+            of the backup.  You can use the "systemd-analyze calendar"
+            command to validate your calendar specification.
+          '';
+        };
 
-      user = lib.mkOption {
-        type = lib.types.str;
-        default = "backup";
-        example = "root";
-        description = "User to execute the script as.";
-      };
+        user = lib.mkOption {
+          type = lib.types.str;
+          default = "backup";
+          example = "root";
+          description = "User to execute the script as.";
+        };
 
-      path = lib.mkOption {
-        type = lib.types.listOf lib.types.package;
-        default = [ ];
-        description = "List of packages to put in PATH.";
-      };
+        path = lib.mkOption {
+          type = lib.types.listOf lib.types.package;
+          default = [ ];
+          description = "List of packages to put in PATH.";
+        };
 
-      preScript = lib.mkOption {
-        type = lib.types.lines;
-        default = "";
-        description = "Shell commands to run before the snapshot.";
-      };
+        preScript = lib.mkOption {
+          type = lib.types.lines;
+          default = "";
+          description = "Shell commands to run before the snapshot.";
+        };
 
-      postScript = lib.mkOption {
-        type = lib.types.lines;
-        default = "";
-        description = "Shell commands to run after the snapshot.";
-      };
+        postScript = lib.mkOption {
+          type = lib.types.lines;
+          default = "";
+          description = "Shell commands to run after the snapshot.";
+        };
 
-      services = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        example = [ "foo.service" ];
-        description = ''
-          Extra services to require and wait for.  Useful if you want
-          to require certain systemd mounts to exist.
-        '';
-      };
+        services = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          example = [ "foo.service" ];
+          description = ''
+            Extra services to require and wait for.  Useful if you want
+            to require certain systemd mounts to exist.
+          '';
+        };
 
-      serviceName = lib.mkOption {
-        type = lib.types.str;
-        default = "backup-snapshot-${name}";
-        description = "The name to use for the systemd units.";
+        serviceName = lib.mkOption {
+          type = lib.types.str;
+          default = "backup-snapshot-${name}";
+          description = "The name to use for the systemd units.";
+        };
       };
     };
-  };
 
   snapshotToScript = snapshot: {
-    inherit (snapshot) schedule user services serviceName;
+    inherit (snapshot)
+      schedule
+      user
+      services
+      serviceName
+      ;
 
     path = [
       pkgs.bzip2
       pkgs.gnutar
       pkgs.util-linux
       config.scripts.backup.package
-    ] ++ snapshot.path;
+    ]
+    ++ snapshot.path;
 
     script = ''
       set -eu

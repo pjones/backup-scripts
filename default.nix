@@ -1,23 +1,28 @@
-{ stdenvNoCC
-, lib
-, bash
-, coreutils
-, e2fsprogs
-, eject
-, findutils
-, gnused
-, openssh
-, rdiff-backup
-, rsync
-, util-linux
-, virtnbdbackup
-, xz
+{
+  stdenvNoCC,
+  lib,
+  bash,
+  coreutils,
+  e2fsprogs,
+  eject,
+  findutils,
+  gnused,
+  openssh,
+  rdiff-backup,
+  rsync,
+  util-linux,
+  virtnbdbackup,
+  xz,
 }:
 
 stdenvNoCC.mkDerivation rec {
   name = "backup-scripts";
   meta.description = "Peter's backup scripts";
-  phases = [ "unpackPhase" "installPhase" "fixupPhase" ];
+  phases = [
+    "unpackPhase"
+    "installPhase"
+    "fixupPhase"
+  ];
   src = ./.;
 
   buildInputs = [

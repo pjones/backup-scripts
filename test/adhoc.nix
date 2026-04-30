@@ -1,4 +1,5 @@
-{ pkgs ? import <nixpkgs> { }
+{
+  pkgs ? import <nixpkgs> { },
 }:
 let
   unit = "backup-adhoc-test";
@@ -8,16 +9,18 @@ pkgs.testers.nixosTest {
   name = "backup-script-test";
 
   nodes = {
-    machine = { ... }: {
-      imports = [ ../nixos ];
+    machine =
+      { ... }:
+      {
+        imports = [ ../nixos ];
 
-      scripts.backup.adhoc.test = {
-        user = "root";
-        script = ''
-          cp "$(realpath /etc/issue)" /tmp/issue
-        '';
+        scripts.backup.adhoc.test = {
+          user = "root";
+          script = ''
+            cp "$(realpath /etc/issue)" /tmp/issue
+          '';
+        };
       };
-    };
   };
 
   testScript = ''

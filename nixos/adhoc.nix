@@ -1,74 +1,81 @@
 # Run any script to perform a backup.
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   cfg = config.scripts.backup;
 
-  scriptOpts = { name, ... }: {
-    options = {
-      name = lib.mkOption {
-        type = lib.types.str;
-        description = "Unique name for this backup script.";
+  scriptOpts =
+    { name, ... }:
+    {
+      options = {
+        name = lib.mkOption {
+          type = lib.types.str;
+          description = "Unique name for this backup script.";
+        };
+
+        path = lib.mkOption {
+          type = lib.types.listOf lib.types.package;
+          default = [ ];
+          description = "List of packages to put in PATH.";
+        };
+
+        script = lib.mkOption {
+          type = lib.types.lines;
+          description = "Script to run.";
+        };
+
+        schedule = lib.mkOption {
+          type = lib.types.str;
+          default = "*-*-* 02:00:00";
+          example = "*-*-* *:00/30:00";
+          description = ''
+            A systemd calendar specification to designate the frequency
+            of the backup.  You can use the "systemd-analyze calendar"
+            command to validate your calendar specification.
+          '';
+        };
+
+        user = lib.mkOption {
+          type = lib.types.str;
+          default = "backup";
+          example = "root";
+          description = "User to execute the script as.";
+        };
+
+        services = lib.mkOption {
+          type = lib.types.listOf lib.types.str;
+          default = [ ];
+          example = [ "foo.service" ];
+          description = ''
+            Extra services to require and wait for.  Useful if you want
+            to require certain systemd mounts to exist.
+          '';
+        };
+
+        serviceName = lib.mkOption {
+          type = lib.types.str;
+          default = "backup-adhoc-${name}";
+          description = "The name to use for the systemd units.";
+        };
       };
 
-      path = lib.mkOption {
-        type = lib.types.listOf lib.types.package;
-        default = [ ];
-        description = "List of packages to put in PATH.";
-      };
-
-      script = lib.mkOption {
-        type = lib.types.lines;
-        description = "Script to run.";
-      };
-
-      schedule = lib.mkOption {
-        type = lib.types.str;
-        default = "*-*-* 02:00:00";
-        example = "*-*-* *:00/30:00";
-        description = ''
-          A systemd calendar specification to designate the frequency
-          of the backup.  You can use the "systemd-analyze calendar"
-          command to validate your calendar specification.
-        '';
-      };
-
-      user = lib.mkOption {
-        type = lib.types.str;
-        default = "backup";
-        example = "root";
-        description = "User to execute the script as.";
-      };
-
-      services = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        example = [ "foo.service" ];
-        description = ''
-          Extra services to require and wait for.  Useful if you want
-          to require certain systemd mounts to exist.
-        '';
-      };
-
-      serviceName = lib.mkOption {
-        type = lib.types.str;
-        default = "backup-adhoc-${name}";
-        description = "The name to use for the systemd units.";
+      config = {
+        name = lib.mkDefault name;
       };
     };
-
-    config = {
-      name = lib.mkDefault name;
-    };
-  };
 
   # Generate a systemd service for a backup.
   service = _unit: opts: rec {
     description = "${opts.name} backup";
-    path = [ pkgs.coreutils cfg.package ] ++ opts.path;
+    path = [
+      pkgs.coreutils
+      cfg.package
+    ]
+    ++ opts.path;
     wants = opts.services;
     after = wants;
     script = opts.script;
@@ -86,13 +93,15 @@ let
   };
 
   # Generate systemd services and timers.
-  toSystemd = f:
-    lib.foldr
-      (a: b:
-        let unit = a.serviceName;
-        in b // { ${unit} = f unit a; })
-      { }
-      (lib.attrValues cfg.adhoc);
+  toSystemd =
+    f:
+    lib.foldr (
+      a: b:
+      let
+        unit = a.serviceName;
+      in
+      b // { ${unit} = f unit a; }
+    ) { } (lib.attrValues cfg.adhoc);
 
 in
 {

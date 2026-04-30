@@ -1,182 +1,186 @@
 # Hard-linked backups via rsync.
-{ config
-, lib
-, pkgs
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  ...
 }:
 let
   cfg = config.scripts.backup;
 
   # Sanitize the name of a directory.
-  cleanDir = path:
-    lib.replaceStrings [ "/" ] [ "-" ]
-      (lib.removePrefix "/" path);
+  cleanDir = path: lib.replaceStrings [ "/" ] [ "-" ] (lib.removePrefix "/" path);
 
   # Backup options.
-  backupOpts = { config, ... }: {
-    options = {
-      remote = {
-        host = lib.mkOption {
+  backupOpts =
+    { config, ... }:
+    {
+      options = {
+        remote = {
+          host = lib.mkOption {
+            type = lib.types.str;
+            example = "example.com";
+            description = "Host name for the machine to back up.";
+          };
+
+          port = lib.mkOption {
+            type = lib.types.ints.positive;
+            default = 22;
+            example = 22;
+            description = "SSH port on the remote machine.";
+          };
+
+          user = lib.mkOption {
+            type = lib.types.str;
+            default = "backup";
+            example = "root";
+            description = "User name on the remote machine to use.";
+          };
+
+          directory = lib.mkOption {
+            type = lib.types.path;
+            default = "/var/lib/backup";
+            example = "/var/backup";
+            description = "Remote directory to sync to the local machine.";
+          };
+        };
+
+        local = {
+          user = lib.mkOption {
+            type = lib.types.str;
+            default = cfg.rsync.user;
+            example = "root";
+            description = "The local user running rsync.";
+          };
+
+          groups = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ ];
+            description = ''
+              List of supplemental groups to add to the systemd service.
+              Useful for allowing access to the SSH key.
+            '';
+          };
+
+          key = lib.mkOption {
+            type = lib.types.nullOr lib.types.path;
+            default = null;
+            example = "/home/backup/.ssh/id_ed25519";
+            description = ''
+              Optional SSH key to use when connecting to the remote
+              machine.
+            '';
+          };
+
+          directory = lib.mkOption {
+            type = lib.types.path;
+            example = "/var/lib/backup/rsync/job";
+            description = "Local directory where files are synced to.";
+          };
+
+          keep = lib.mkOption {
+            type = lib.types.ints.positive;
+            default = 7;
+            example = 14;
+            description = "Number of backups to keep when deleting older backups.";
+          };
+
+          services = lib.mkOption {
+            type = lib.types.listOf lib.types.str;
+            default = [ ];
+            example = [ "foo.service" ];
+            description = ''
+              Extra services to require and wait for.  Useful if you want
+              to require certain systemd mounts to exist.
+            '';
+          };
+        };
+
+        schedule = lib.mkOption {
           type = lib.types.str;
-          example = "example.com";
-          description = "Host name for the machine to back up.";
+          default = "*-*-* 02:00:00";
+          example = "*-*-* *:00/30:00";
+          description = ''
+            A systemd calendar specification to designate the frequency
+            of the backup.  You can use the "systemd-analyze calendar"
+            command to validate your calendar specification.
+
+            When increasing the frequency of the backups you should
+            consider changing the number of backups that you keep.
+          '';
         };
 
-        port = lib.mkOption {
-          type = lib.types.ints.positive;
-          default = 22;
-          example = 22;
-          description = "SSH port on the remote machine.";
-        };
-
-        user = lib.mkOption {
-          type = lib.types.str;
-          default = "backup";
-          example = "root";
-          description = "User name on the remote machine to use.";
-        };
-
-        directory = lib.mkOption {
-          type = lib.types.path;
-          default = "/var/lib/backup";
-          example = "/var/backup";
-          description = "Remote directory to sync to the local machine.";
-        };
-      };
-
-      local = {
-        user = lib.mkOption {
-          type = lib.types.str;
-          default = cfg.rsync.user;
-          example = "root";
-          description = "The local user running rsync.";
-        };
-
-        groups = lib.mkOption {
+        extraRsyncOptions = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];
           description = ''
-            List of supplemental groups to add to the systemd service.
-            Useful for allowing access to the SSH key.
+            Extra options to pass to rsync.  They will be properly
+            escaped when passed to the rsync script.
           '';
         };
 
-        key = lib.mkOption {
-          type = lib.types.nullOr lib.types.path;
-          default = null;
-          example = "/home/backup/.ssh/id_ed25519";
+        preScript = lib.mkOption {
+          type = lib.types.lines;
+          default = "";
           description = ''
-            Optional SSH key to use when connecting to the remote
-            machine.
-          '';
-        };
-
-        directory = lib.mkOption {
-          type = lib.types.path;
-          example = "/var/lib/backup/rsync/job";
-          description = "Local directory where files are synced to.";
-        };
-
-        keep = lib.mkOption {
-          type = lib.types.ints.positive;
-          default = 7;
-          example = 14;
-          description = "Number of backups to keep when deleting older backups.";
-        };
-
-        services = lib.mkOption {
-          type = lib.types.listOf lib.types.str;
-          default = [ ];
-          example = [ "foo.service" ];
-          description = ''
-            Extra services to require and wait for.  Useful if you want
-            to require certain systemd mounts to exist.
+            Shell script fragment to run before rsync.
           '';
         };
       };
 
-      schedule = lib.mkOption {
-        type = lib.types.str;
-        default = "*-*-* 02:00:00";
-        example = "*-*-* *:00/30:00";
-        description = ''
-          A systemd calendar specification to designate the frequency
-          of the backup.  You can use the "systemd-analyze calendar"
-          command to validate your calendar specification.
-
-          When increasing the frequency of the backups you should
-          consider changing the number of backups that you keep.
-        '';
-      };
-
-      extraRsyncOptions = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
-        default = [ ];
-        description = ''
-          Extra options to pass to rsync.  They will be properly
-          escaped when passed to the rsync script.
-        '';
-      };
-
-      preScript = lib.mkOption {
-        type = lib.types.lines;
-        default = "";
-        description = ''
-          Shell script fragment to run before rsync.
-        '';
-      };
-    };
-
-    config = {
-      local.directory =
-        lib.mkDefault
-          (lib.concatStringsSep "/" [
+      config = {
+        local.directory = lib.mkDefault (
+          lib.concatStringsSep "/" [
             cfg.rsync.directory
             config.remote.host
             (cleanDir config.remote.directory)
-          ]);
+          ]
+        );
+      };
     };
-  };
 
   # systemd tmp file rules:
-  tmpfiles = opts:
-    "d '${opts.local.directory}' 0700 ${opts.local.user} ${cfg.rsync.group} -";
+  tmpfiles = opts: "d '${opts.local.directory}' 0700 ${opts.local.user} ${cfg.rsync.group} -";
 
   # Generate a systemd service for a backup.
-  service = _unit: opts:
-    rec {
-      description = "rsync backup for ${opts.remote.host}:${opts.remote.directory}";
-      path = [ pkgs.coreutils cfg.package ];
-      wants = opts.local.services;
-      after = wants;
+  service = _unit: opts: rec {
+    description = "rsync backup for ${opts.remote.host}:${opts.remote.directory}";
+    path = [
+      pkgs.coreutils
+      cfg.package
+    ];
+    wants = opts.local.services;
+    after = wants;
 
-      serviceConfig = {
-        Type = "simple";
-        User = opts.local.user;
-        SupplementaryGroups = opts.local.groups;
-      };
+    serviceConfig = {
+      Type = "simple";
+      User = opts.local.user;
+      SupplementaryGroups = opts.local.groups;
+    };
 
-      script =
-        let
-          rsyncCmd =
-            "backup_via_rsync "
-            + lib.concatMapStringsSep " " lib.escapeShellArg
-              ([
-                "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}"
-                opts.local.directory
-              ] ++ opts.extraRsyncOptions);
-        in
-        ''
-          export BACKUP_LIB_DIR=${cfg.package}/lib
-          export BACKUP_LOG_DIR=stdout
-          export BACKUP_LOG_ADD_DATE=no
-          export BACKUP_SSH_KEY=${toString opts.local.key}
-          export BACKUP_SSH_PORT=${toString opts.remote.port}
-          . "${cfg.package}/lib/backup.sh"
+    script =
+      let
+        rsyncCmd =
+          "backup_via_rsync "
+          + lib.concatMapStringsSep " " lib.escapeShellArg (
+            [
+              "${opts.remote.user}@${opts.remote.host}:${opts.remote.directory}"
+              opts.local.directory
+            ]
+            ++ opts.extraRsyncOptions
+          );
+      in
+      ''
+        export BACKUP_LIB_DIR=${cfg.package}/lib
+        export BACKUP_LOG_DIR=stdout
+        export BACKUP_LOG_ADD_DATE=no
+        export BACKUP_SSH_KEY=${toString opts.local.key}
+        export BACKUP_SSH_PORT=${toString opts.remote.port}
+        . "${cfg.package}/lib/backup.sh"
 
-        ''
-        + opts.preScript
-        + ''
+      ''
+      + opts.preScript
+      + ''
 
         log "starting backup_via_rsync"
         ${rsyncCmd}
@@ -186,7 +190,7 @@ let
           -k "${toString opts.local.keep}" \
           -d ${lib.escapeShellArg opts.local.directory}
       '';
-    };
+  };
 
   # Generate a systemd timer for a backup.
   timer = unit: opts: {
@@ -198,13 +202,15 @@ let
   };
 
   # Generate systemd services and timers.
-  toSystemd = f:
-    lib.foldr
-      (a: b:
-        let unit = "backup-rsync-${a.remote.host}-${cleanDir a.remote.directory}";
-        in b // { "${unit}" = f unit a; })
-      { }
-      cfg.rsync.schedules;
+  toSystemd =
+    f:
+    lib.foldr (
+      a: b:
+      let
+        unit = "backup-rsync-${a.remote.host}-${cleanDir a.remote.directory}";
+      in
+      b // { "${unit}" = f unit a; }
+    ) { } cfg.rsync.schedules;
 in
 {
   #### Interface
@@ -238,17 +244,9 @@ in
 
   #### Implementation
   config = lib.mkIf cfg.rsync.enable {
-    scripts.backup.rsync.user =
-      lib.mkDefault
-        (if cfg.user.enable
-        then cfg.user.name
-        else "root");
+    scripts.backup.rsync.user = lib.mkDefault (if cfg.user.enable then cfg.user.name else "root");
 
-    scripts.backup.rsync.group =
-      lib.mkDefault
-        (if cfg.user.enable
-        then cfg.user.group
-        else "wheel");
+    scripts.backup.rsync.group = lib.mkDefault (if cfg.user.enable then cfg.user.group else "wheel");
 
     systemd = {
       services = toSystemd service;

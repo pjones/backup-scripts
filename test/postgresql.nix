@@ -1,10 +1,15 @@
-{ pkgs ? import <nixpkgs> { }
+{
+  pkgs ? import <nixpkgs> { },
 }:
 let
   tests = pkgs.stdenvNoCC.mkDerivation {
     name = "postgresql-backup-test-scripts";
     src = ./.;
-    phases = [ "unpackPhase" "installPhase" "fixupPhase" ];
+    phases = [
+      "unpackPhase"
+      "installPhase"
+      "fixupPhase"
+    ];
 
     installPhase = ''
       mkdir -p "$out/bin"
@@ -18,22 +23,24 @@ pkgs.testers.nixosTest {
   name = "backup-postgresql-test";
 
   nodes = {
-    machine = { ... }: {
-      imports = [ ../nixos ];
-      environment.systemPackages = [ tests ];
+    machine =
+      { ... }:
+      {
+        imports = [ ../nixos ];
+        environment.systemPackages = [ tests ];
 
-      # Set up PostgreSQL:
-      services.postgresql = {
-        enable = true;
-        ensureDatabases = [ database ];
-      };
+        # Set up PostgreSQL:
+        services.postgresql = {
+          enable = true;
+          ensureDatabases = [ database ];
+        };
 
-      # Configure backups:
-      scripts.backup.postgresql = {
-        enable = true;
-        databases = [ database ];
+        # Configure backups:
+        scripts.backup.postgresql = {
+          enable = true;
+          databases = [ database ];
+        };
       };
-    };
   };
 
   testScript = ''
