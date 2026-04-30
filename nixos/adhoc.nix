@@ -61,6 +61,12 @@ let
           default = "backup-adhoc-${name}";
           description = "The name to use for the systemd units.";
         };
+
+        serviceConfig = lib.mkOption {
+          type = lib.types.attrsOf lib.types.anything;
+          default = { };
+          description = "Extra options to pass to systemd";
+        };
       };
 
       config = {
@@ -79,8 +85,12 @@ let
     wants = opts.services;
     after = wants;
     script = opts.script;
-    serviceConfig.Type = "simple";
-    serviceConfig.User = opts.user;
+
+    serviceConfig = {
+      Type = "simple";
+      User = opts.user;
+    }
+    // opts.serviceConfig;
   };
 
   # Generate a systemd timer for a backup.

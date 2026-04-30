@@ -46,9 +46,15 @@ let
 
         user = lib.mkOption {
           type = lib.types.str;
-          default = "backup";
+          default = config.scripts.backup.user.name;
           example = "root";
           description = "User to execute the script as.";
+        };
+
+        group = lib.mkOption {
+          type = lib.types.str;
+          default = config.scripts.backup.user.group;
+          description = "Group for the backup user.";
         };
 
         path = lib.mkOption {
@@ -113,6 +119,8 @@ let
       export BACKUP_DIR="${snapshot.destination}"
       export BACKUP_SRC="${snapshot.directory}"
 
+      source "$BACKUP_LIB_DIR/backup.sh"
+
       mkdir -p "$BACKUP_DIR/$BACKUP_TIMESTAMP"
       cd "$BACKUP_SRC"
 
@@ -141,7 +149,34 @@ let
       echo "purging old backups from $BACKUP_DIR"
       backup-purge.sh -k ${builtins.toString snapshot.keep} "$BACKUP_DIR"
     '';
+
+    serviceConfig =
+      let
+        needPerms = config.scripts.backup.user.enable && snapshot.user == config.scripts.backup.user.name;
+
+        preStart = pkgs.writeShellScript "pre" ''
+          cd "${snapshot.directory}"
+
+          ${pkgs.findutils}/bin/find . \
+            ${lib.concatMapStringsSep " " (n: "-name ${lib.escapeShellArg n}") snapshot.filePatterns} \
+            -exec ${pkgs.acl}/bin/setfacl --recursive -m user:${snapshot.user}:rX '{}' ';'
+        '';
+      in
+      lib.optionalAttrs needPerms {
+        ExecStartPre = "+${preStart}";
+      };
   };
+
+  dirRule =
+    snapshot:
+    lib.concatStringsSep " " [
+      "d"
+      ''"${snapshot.directory}"''
+      "0750"
+      snapshot.user
+      snapshot.group
+      "-"
+    ];
 in
 {
   options.scripts.backup.snapshot = lib.mkOption {
@@ -152,5 +187,6 @@ in
 
   config = lib.mkIf (builtins.length (builtins.attrValues cfg) > 0) {
     scripts.backup.adhoc = lib.mapAttrs (_name: snapshotToScript) cfg;
+    systemd.tmpfiles.rules = map dirRule (lib.attrValues cfg);
   };
 }

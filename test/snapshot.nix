@@ -14,11 +14,14 @@ pkgs.testers.nixosTest {
       {
         imports = [ ../nixos ];
 
-        scripts.backup.snapshot.test = {
-          user = "root";
-          directory = "/etc";
-          destination = "/tmp/backup";
-          filePatterns = [ "issue" ];
+        scripts.backup = {
+          user.enable = true;
+
+          snapshot.test = {
+            directory = "/etc";
+            destination = "/tmp/backup";
+            filePatterns = [ "issue" ];
+          };
         };
       };
   };
