@@ -37,6 +37,12 @@ in
         default = user;
         description = "Group for the backup user.";
       };
+
+      extraConfig = lib.mkOption {
+        type = lib.types.attrsOf lib.types.anything;
+        default = { };
+        description = "Extra attributes for the NixOS user account";
+      };
     };
 
     directory = lib.mkOption {
@@ -61,12 +67,14 @@ in
     # Use a dedicated user/group:
     (lib.mkIf cfg.user.enable {
       users.users."${cfg.user.name}" = {
-        description = "Backup user.";
-        home = cfg.directory;
         createHome = true;
+        description = "Backup user.";
         group = cfg.user.group;
+        home = cfg.directory;
         isSystemUser = true;
-      };
+        shell = pkgs.bash;
+      }
+      // cfg.user.extraConfig;
 
       users.groups."${cfg.user.group}" = { };
     })
