@@ -6,45 +6,29 @@ set -eu
 set -o pipefail
 
 ################################################################################
+top="$(realpath "$(dirname "$0")/..")"
+export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-$top/lib}
+
+################################################################################
+# shellcheck source=../lib/backup.sh
+. "$BACKUP_LIB_DIR/backup.sh"
+
+################################################################################
+locked_uuid=28761c11-f814-4078-864f-d0c5b97c79fb
+unlocked_uuid=7c53dda6-d735-4601-906e-f3ffb282485e
+mount_point=/run/media/$USER/$unlocked_uuid
+
+################################################################################
 option_vm=win11
 
 ################################################################################
-unlocked_uuid=b5d4ccdb-0a0e-493d-96c7-bd217145fecd
-mount_point=/run/media/pjones/$unlocked_uuid
-
-################################################################################
-function usage() {
-  cat <<EOF
-Usage: $(basename "$0") [options]
-
-  -h      This message
-
-EOF
-}
-
-################################################################################
 function main() {
-  while getopts "h" o; do
-    case "${o}" in
-    h)
-      usage
-      exit
-      ;;
+  backup_mount_dir \
+    -l "$locked_uuid" \
+    "$unlocked_uuid" \
+    "$mount_point"
 
-    *)
-      exit 1
-      ;;
-    esac
-  done
-
-  shift $((OPTIND - 1))
-
-  if [ ! -d "$mount_point" ]; then
-    echo >&2 "ERROR: please insert the backup drive"
-    exit 1
-  fi
-
-  backup_dir="$mount_point/vm-$option_vm"
+  backup_dir="$mount_point/backup/vm-$option_vm"
   mkdir -p "$backup_dir"
 
   # https://github.com/abbbi/virtnbdbackup

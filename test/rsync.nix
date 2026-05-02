@@ -22,42 +22,39 @@ pkgs.testers.nixosTest {
   name = "rsync-backup-test";
 
   nodes = {
-    machine =
-      { pkgs, ... }:
-      {
-        imports = [ ../nixos ];
-        services.openssh.enable = true;
-        environment.systemPackages = [ tests ];
+    machine = {
+      imports = [ ../nixos ];
+      services.openssh.enable = true;
+      environment.systemPackages = [ tests ];
 
-        scripts.backup.user.enable = true;
+      scripts.backup.user.enable = true;
 
-        users.users.backup = {
-          # Let the backup user accept SSH connections:
-          shell = pkgs.bashInteractive;
-          openssh.authorizedKeys.keys = [
-            (builtins.readFile data/ssh.id_ed25519.pub)
-          ];
-        };
-
-        scripts.backup.rsync = {
-          enable = true;
-          schedules = [
-            {
-              extraRsyncOptions = [
-                "--progress"
-                "--stats"
-              ];
-              local.keep = 2;
-              local.key = "/tmp/key";
-              local.services = [ "sshd.service" ];
-              local.user = "backup";
-              remote.directory = "/tmp/backup";
-              remote.host = "localhost";
-              remote.user = "backup";
-            }
-          ];
-        };
+      users.users.backup = {
+        # Let the backup user accept SSH connections:
+        openssh.authorizedKeys.keys = [
+          (builtins.readFile data/ssh.id_ed25519.pub)
+        ];
       };
+
+      scripts.backup.rsync = {
+        enable = true;
+        schedules = [
+          {
+            extraRsyncOptions = [
+              "--progress"
+              "--stats"
+            ];
+            local.keep = 2;
+            local.key = "/tmp/key";
+            local.services = [ "sshd.service" ];
+            local.user = "backup";
+            remote.directory = "/tmp/backup";
+            remote.host = "localhost";
+            remote.user = "backup";
+          }
+        ];
+      };
+    };
   };
 
   testScript = ''

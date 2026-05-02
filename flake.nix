@@ -48,6 +48,21 @@
           backup-scripts = self.packages.${prev.stdenv.hostPlatform.system}.backup-scripts;
         };
 
+      apps = each (
+        pkgs: system:
+        let
+          example = script: {
+            type = "app";
+            program = "${self.packages.${system}.backup-scripts}/examples/${script}";
+          };
+        in
+        {
+          docs = example "backup-docs.sh";
+          sid = example "backup-sid.sh";
+          vm = example "backup-vm.sh";
+        }
+      );
+
       checks = each (
         pkgs: system:
         lib.optionalAttrs pkgs.stdenv.isLinux {

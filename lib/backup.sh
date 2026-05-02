@@ -17,6 +17,9 @@ BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-$(dirname "$0")}
 # shellcheck source=exclude.sh
 . "${BACKUP_LIB_DIR}/exclude.sh"
 
+# shellcheck source=mount.sh
+. "${BACKUP_LIB_DIR}/mount.sh"
+
 # shellcheck source=rdiff.sh
 . "${BACKUP_LIB_DIR}/rdiff.sh"
 

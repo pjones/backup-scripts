@@ -1,0 +1,4 @@
+external-sources=true
+check-sourced=true
+source-path=lib
+enable=avoid-nullary-conditions,check-unassigned-uppercase,deprecate-which,quote-safe-variables,useless-use-of-cat

@@ -14,6 +14,14 @@ BACKUP_SSH_PORT=${BACKUP_SSH_PORT:-22}
 BACKUP_RSYNC_IGNORE_VANISHED=${BACKUP_RSYNC_IGNORE_VANISHED:-1}
 
 ################################################################################
+BACKUP_RSYNC_COMMON_ARGS=(
+  "--archive"
+  "--update"
+  "--human-readable"
+  "--progress"
+)
+
+################################################################################
 # Sync a directory using rsync.
 #
 #   $1: Origin directory (include trailing slash).
@@ -29,7 +37,70 @@ sync_via_rsync() {
   shift
 
   log "syncing $origin -> $destination"
-  rsync -au "$origin" "$destination"
+  rsync "${BACKUP_RSYNC_COMMON_ARGS[@]}" "$origin" "$destination"
+}
+
+################################################################################
+# Sync the latest backup archive from a remote server.
+#
+#  Usage: sync_latest_archive_via_rsync [options] server rdir ldir
+#
+#  server: The server name.
+#    rdir: The remote directory
+#    ldir: The local backup directory
+#
+# Options:
+#
+#  -u USER Connect as USER
+#
+function sync_latest_archive_via_rsync() {
+  local server
+  local remote_dir
+  local local_dir
+  local user
+
+  OPTIND=1
+  while getopts "hu:" o; do
+    case "${o}" in
+    u)
+      user=$OPTARG
+      ;;
+
+    *)
+      exit 1
+      ;;
+    esac
+  done
+
+  shift $((OPTIND - 1))
+
+  if [[ $# != 3 ]]; then
+    echo >&2 "ERROR: sync_latest_archive_via_rsync: expected server ldir rdir"
+    exit 1
+  fi
+
+  server=$1
+  remote_dir=$2
+  local_dir=$3
+
+  local ssh_server=$server
+
+  if [[ -n ${user:-} ]]; then
+    ssh_server="${user}@${ssh_server}"
+  fi
+
+  # Get the latest file name from the server:
+  local latest
+  latest=$(ssh "$ssh_server" bash -s <<<"
+    ls -t '$remote_dir' | head -n 1
+  ")
+
+  if [[ -n ${latest:-} ]]; then
+    mkdir -p "$local_dir"
+    rsync "${BACKUP_RSYNC_COMMON_ARGS[@]}" \
+      "${ssh_server}:${remote_dir}/${latest}" \
+      "$local_dir/$latest"
+  fi
 }
 
 ################################################################################
