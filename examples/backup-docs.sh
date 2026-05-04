@@ -71,17 +71,14 @@ do_backup() {
 sync_latest_archive_from_vps() {
   local src_dir=$1
   local dst_dir=$2
-  local latest
 
-  # shellcheck disable=SC2029
-  latest=$(ssh root@${remote_vps_host} "ls -t $src_dir | head -1")
-  mkdir --parents "$dst_dir"
+  sync_latest_archive_via_rsync \
+    -u root \
+    "$remote_vps_host" \
+    "$src_dir" \
+    "$dst_dir"
 
-  log "$latest -> $dst_dir/"
-  rsync \
-    --checksum \
-    "root@${remote_vps_host}:$src_dir/$latest" \
-    "$dst_dir/latest.${latest##*.}"
+  "$top/bin/backup-purge.sh" -k 14 "$dst_dir"
 }
 
 ################################################################################
