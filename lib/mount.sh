@@ -63,20 +63,28 @@ function backup_unmount_all() {
 
   if [[ ${option_keep_mounted:=0} == 0 ]]; then
     while [[ $i -lt ${#backup_mounted_dirs[@]} ]]; do
+      log "backup_unmount_all[$i]"
+
       mount_point=${backup_mounted_dirs[$i]}
       unlocked_uuid=${backup_mounted_unlocked_ids[$i]}
       locked_uuid=${backup_mounted_locked_ids[$i]}
 
       if [ -e "$mount_point" ] && mountpoint --quiet "$mount_point"; then
+        log "un-mounting $mount_point"
         udisksctl unmount --block-device "/dev/disk/by-uuid/$unlocked_uuid"
       fi
 
       if [ -e "/dev/disk/by-uuid/$unlocked_uuid" ]; then
+        log "locking device /dev/disk/by-uuid/$unlocked_uuid"
         udisksctl lock --block-device "/dev/disk/by-uuid/$locked_uuid"
       fi
 
       i=$((i + 1))
     done
+
+    backup_mounted_dirs=()
+    backup_mounted_unlocked_ids=()
+    backup_mounted_locked_ids=()
   fi
 }
 
