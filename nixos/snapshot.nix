@@ -147,7 +147,7 @@ let
       ${snapshot.postScript}
 
       echo "purging old backups from $BACKUP_DIR"
-      backup-purge.sh -k ${builtins.toString snapshot.keep} "$BACKUP_DIR"
+      backup-purge.sh -k ${toString snapshot.keep} "$BACKUP_DIR"
     '';
 
     serviceConfig =
@@ -171,7 +171,7 @@ let
     snapshot:
     lib.concatStringsSep " " [
       "d"
-      ''"${snapshot.directory}"''
+      ''"${snapshot.destination}"''
       "0750"
       snapshot.user
       snapshot.group
