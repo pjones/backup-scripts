@@ -59,12 +59,15 @@ function backup_mount_dir() {
 
 ################################################################################
 function backup_unmount_all() {
+  log "drive status:"
+  for dir in "${backup_mounted_dirs[@]}"; do
+    df -h --output=size,used,avail,pcent,target "$dir"
+  done
+
   local i=0
 
   if [[ ${option_keep_mounted:=0} == 0 ]]; then
     while [[ $i -lt ${#backup_mounted_dirs[@]} ]]; do
-      log "backup_unmount_all[$i]"
-
       mount_point=${backup_mounted_dirs[$i]}
       unlocked_uuid=${backup_mounted_unlocked_ids[$i]}
       locked_uuid=${backup_mounted_locked_ids[$i]}

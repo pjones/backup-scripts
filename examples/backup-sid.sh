@@ -28,9 +28,6 @@ function report_local_dirs() {
   for dir in "${local_directories[@]}"; do
     du -hs "$dir"
   done
-
-  log "drive status:"
-  df -h --output=size,used,avail,pcent "$mount_point"
 }
 
 ################################################################################
