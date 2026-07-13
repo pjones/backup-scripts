@@ -155,15 +155,16 @@ let
         needPerms = config.scripts.backup.user.enable && snapshot.user == config.scripts.backup.user.name;
 
         preStart = pkgs.writeShellScript "pre" ''
-          cd "${snapshot.directory}"
+          ${pkgs.acl}/bin/setfacl --recursive --modify user:${snapshot.user}:rX "${snapshot.directory}"
+        '';
 
-          ${pkgs.findutils}/bin/find . \
-            ${lib.concatMapStringsSep " " (n: "-name ${lib.escapeShellArg n}") snapshot.filePatterns} \
-            -exec ${pkgs.acl}/bin/setfacl --recursive -m user:${snapshot.user}:rX '{}' ';'
+        postStop = pkgs.writeShellScript "post" ''
+          ${pkgs.acl}/bin/setfacl --recursive --remove user:${snapshot.user} "${snapshot.directory}"
         '';
       in
       lib.optionalAttrs needPerms {
         ExecStartPre = "+${preStart}";
+        ExecStopPost = "+${postStop}";
       };
   };
 
