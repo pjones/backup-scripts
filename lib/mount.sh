@@ -40,6 +40,10 @@ function backup_mount_dir() {
   unlocked_uuid=$1
   mount_point=$2
 
+  backup_mounted_dirs+=("$mount_point")
+  backup_mounted_unlocked_ids+=("$unlocked_uuid")
+  backup_mounted_locked_ids+=("${locked_uuid:-}")
+
   if [ ! -e "$mount_point" ] || ! mountpoint --quiet "$mount_point"; then
     echo "Unlocking and mounting backup disk..."
 
@@ -50,19 +54,17 @@ function backup_mount_dir() {
     fi
 
     udisksctl mount --block-device "/dev/disk/by-uuid/$unlocked_uuid"
-
-    backup_mounted_dirs+=("$mount_point")
-    backup_mounted_unlocked_ids+=("$unlocked_uuid")
-    backup_mounted_locked_ids+=("${locked_uuid:-}")
   fi
 }
 
 ################################################################################
 function backup_unmount_all() {
-  log "drive status:"
-  for dir in "${backup_mounted_dirs[@]}"; do
-    df -h --output=size,used,avail,pcent,target "$dir"
-  done
+  if [[ "${#backup_mounted_dirs[@]}" -ge 1 ]]; then
+    log "drive status:"
+    for dir in "${backup_mounted_dirs[@]}"; do
+      df -h --output=size,used,avail,pcent,target "$dir"
+    done
+  fi
 
   local i=0
 
