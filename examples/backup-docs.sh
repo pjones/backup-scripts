@@ -17,8 +17,6 @@ export BACKUP_LIB_DIR=${BACKUP_LIB_DIR:-$top/lib}
 locked_uuid=4da1879b-efd6-45fc-bd76-b2170008f839
 unlocked_uuid=e549177c-0e84-4e12-be3f-a28b1476fc47
 mount_point=/run/media/pjones/$unlocked_uuid
-remote_vps_name=slugworth
-remote_vps_host="${remote_vps_name}.private.jonesbunch.com"
 
 ################################################################################
 usage() {
@@ -68,38 +66,31 @@ do_backup() {
 }
 
 ################################################################################
-sync_latest_archive_from_vps() {
-  local src_dir=$1
-  local dst_dir=$2
+function slugworth_fetch() {
+  local remote_dir=$1
+  local local_dir=${2:-}
+  local remote_server="backup.slugworth"
+
+  if [[ -z ${local_dir:-} ]]; then
+    local_dir=$(basename "$remote_dir")
+  fi
+
+  log "$remote_server:$(basename "$remote_dir")"
+  local_dir="$mount_point/$remote_server/$local_dir"
+  local_directories+=("$local_dir")
 
   sync_latest_archive_via_rsync \
-    -u root \
-    "$remote_vps_host" \
-    "$src_dir" \
-    "$dst_dir"
+    "$remote_server" \
+    "$remote_dir" \
+    "$local_dir"
 
-  "$top/bin/backup-purge.sh" -k 14 "$dst_dir"
-}
+  # Make sure at least one new file was downloaded:
+  if [ "$(find "$local_dir" -mtime -1 -print | wc -l)" -le 0 ]; then
+    echo >&2 "ERROR: no files downloaded, or only old files exist"
+    exit 1
+  fi
 
-################################################################################
-gitea_latest() {
-  sync_latest_archive_from_vps \
-    "/var/lib/backup/gitea" \
-    "$mount_point/$remote_vps_name/gitea"
-}
-
-################################################################################
-miniflux_latest() {
-  sync_latest_archive_from_vps \
-    "/var/lib/pgbackup/miniflux" \
-    "$mount_point/$remote_vps_name/miniflux"
-}
-
-################################################################################
-backup_immich() {
-  do_backup \
-    "root@$remote_vps_host:/var/lib/immich" \
-    "$remote_vps_name/immich"
+  "$top/bin/backup-purge.sh" -k 14 "$local_dir"
 }
 
 ################################################################################
@@ -125,9 +116,11 @@ main() {
   fi
 
   # All hosts:
-  gitea_latest
-  miniflux_latest
-  backup_immich
+  slugworth_fetch "/var/lib/backup/gitea"
+  slugworth_fetch "/var/lib/backup/immich"
+  slugworth_fetch "/var/lib/backup/kanidm"
+  slugworth_fetch "/var/lib/backup/postgresql/miniflux"
+  slugworth_fetch "/var/lib/backup/postgresql/vaultwarden"
 }
 
 ################################################################################
