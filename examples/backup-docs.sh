@@ -94,7 +94,7 @@ function slugworth_fetch() {
 }
 
 ################################################################################
-main() {
+function main() {
   local host
   host=$(hostname)
 
@@ -116,8 +116,8 @@ main() {
   fi
 
   # All hosts:
-  slugworth_fetch "/var/lib/backup/gitea"
-  slugworth_fetch "/var/lib/backup/immich"
+  slugworth_fetch "/var/lib/gitea/dump"
+  slugworth_fetch "/var/lib/immich/backups"
   slugworth_fetch "/var/lib/backup/kanidm"
   slugworth_fetch "/var/lib/backup/postgresql/miniflux"
   slugworth_fetch "/var/lib/backup/postgresql/vaultwarden"
