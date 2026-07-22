@@ -16,6 +16,7 @@ in
     ./adhoc.nix
     ./postgresql.nix
     ./rsync.nix
+    ./setfacl.nix
     ./snapshot.nix
   ];
 

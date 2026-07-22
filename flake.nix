@@ -2,7 +2,7 @@
   description = "Peter's Backup Scripts";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
   };
 
   outputs =
@@ -69,6 +69,7 @@
           adhoc = import test/adhoc.nix { inherit pkgs; };
           postgresql = import test/postgresql.nix { inherit pkgs; };
           rsync = import test/rsync.nix { inherit pkgs; };
+          setfacl = import test/setfacl.nix { inherit pkgs; };
           snapshot = import test/snapshot.nix { inherit pkgs; };
         }
       );
