@@ -28,7 +28,7 @@ in
 
     schedule = lib.mkOption {
       type = lib.types.str;
-      default = "*-*-* 01:00:00";
+      default = "*-*-* 06:30:00";
       example = "*-*-* *:00/30:00";
       description = ''
         A systemd calendar specification to designate the frequency of the
