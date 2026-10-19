@@ -113,14 +113,16 @@ function main() {
     do_backup ~/keys "$host/keys"
     do_backup ~/.password-store passwords
     do_backup ~/.var/app "$host/flatpack" --exclude='**/cache/'
+    do_backup ~/.config/beets "$host/beets" --exclude='*.bak' --exclude='config.yaml'
   fi
 
   # All hosts:
-  slugworth_fetch "/var/lib/gitea/dump"
-  slugworth_fetch "/var/lib/immich/backups"
-  slugworth_fetch "/var/lib/backup/kanidm"
-  slugworth_fetch "/var/lib/backup/postgresql/miniflux"
-  slugworth_fetch "/var/lib/backup/postgresql/vaultwarden"
+  slugworth_fetch "/var/lib/gitea/dump" "gitea"
+  slugworth_fetch "/var/lib/immich/backups" "immich/db"
+  slugworth_fetch "/var/lib/immich/upload" "immich/images"
+  slugworth_fetch "/var/lib/backup/kanidm" "kanidm"
+  slugworth_fetch "/var/lib/backup/postgresql/miniflux" "miniflux"
+  slugworth_fetch "/var/lib/backup/postgresql/vaultwarden" "vaultwarden"
 }
 
 ################################################################################
