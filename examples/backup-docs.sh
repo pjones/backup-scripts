@@ -19,6 +19,9 @@ unlocked_uuid=e549177c-0e84-4e12-be3f-a28b1476fc47
 mount_point=/run/media/pjones/$unlocked_uuid
 
 ################################################################################
+exit_code=0
+
+################################################################################
 usage() {
   cat <<EOF
 Usage: $(basename "$0") [options]
@@ -75,7 +78,7 @@ function slugworth_fetch() {
     local_dir=$(basename "$remote_dir")
   fi
 
-  log "$remote_server:$(basename "$remote_dir")"
+  log "fetching backup from $remote_server:$remote_dir"
   local_dir="$mount_point/$remote_server/$local_dir"
   local_directories+=("$local_dir")
 
@@ -87,7 +90,8 @@ function slugworth_fetch() {
   # Make sure at least one new file was downloaded:
   if [ "$(find "$local_dir" -mtime -1 -print | wc -l)" -le 0 ]; then
     echo >&2 "ERROR: no files downloaded, or only old files exist"
-    exit 1
+    exit_code=1
+    return
   fi
 
   "$top/bin/backup-purge.sh" -k 14 "$local_dir"
@@ -123,6 +127,8 @@ function main() {
   slugworth_fetch "/var/lib/backup/kanidm" "kanidm"
   slugworth_fetch "/var/lib/backup/postgresql/miniflux" "miniflux"
   slugworth_fetch "/var/lib/backup/postgresql/vaultwarden" "vaultwarden"
+
+  exit "$exit_code"
 }
 
 ################################################################################
