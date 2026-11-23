@@ -74,10 +74,12 @@ in
         home = cfg.directory;
         isSystemUser = true;
         shell = pkgs.bash;
+        packages = with pkgs; [ rsync ];
       }
       // cfg.user.extraConfig;
 
       users.groups."${cfg.user.group}" = { };
+      services.openssh.settings.AllowGroups = [ cfg.user.name ];
     })
   ];
 }
